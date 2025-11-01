@@ -1,0 +1,32 @@
+version: '3'
+services:
+  server:
+    build: ./server
+    container_name: sentry-server
+    ports:
+      - "3000:3000"
+    depends_on:
+      - sentry-db
+    volumes:
+      - ./server:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@sentry-db:5432/sentry?schema=public
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - ./server/.env
+
+  skill-bytes-db:
+    image: postgres:13-alpine
+    container_name: sentry-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=sentry
+    ports:
+      - "5432:5432"
+    volumes:
+      - sentry-db-data:/var/lib/postgresql/data
+
+volumes:
+  sentry-db-data:
