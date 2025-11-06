@@ -11,7 +11,7 @@ datasource db {
 
 model DataPoint {
   id          Int      @id @default(autoincrement())
-  temperature Float
-  humidity    Float
+  type        String
+  value       Float
   createdAt   DateTime @default(now())
 }

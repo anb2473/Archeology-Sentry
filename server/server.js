@@ -5,7 +5,6 @@ import userRoutes from './routes/user/user.js';
 import authMiddleware from './middleware/authMiddleware.js';
 import logger from './logger.js';
 import cookieParser from 'cookie-parser';
-import startSerialReader from './arduino_listener.js';
 import { prisma } from './prismaClient.js';
 
 dotenv.config();
