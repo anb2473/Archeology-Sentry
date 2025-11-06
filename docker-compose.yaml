@@ -13,10 +13,11 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@sentry-db:5432/sentry?schema=public
       - NODE_ENV=production
       - PORT=3000
+      - ARDUINO_PORT=COM3
     env_file:
       - ./server/.env
 
-  skill-bytes-db:
+  sentry-db:
     image: postgres:13-alpine
     container_name: sentry-db
     environment:

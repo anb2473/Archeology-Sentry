@@ -16,7 +16,7 @@ port.on("error", (err) => {
   console.error("❌ Arduino connection error:", err.message);
 });
 
-export async function startSerialReader(onData) {
+export default async function startSerialReader(onData) {
   console.log("📡 Starting serial reader loop...");
 
   try {
@@ -26,6 +26,7 @@ export async function startSerialReader(onData) {
 
       if (onData) {
         try {
+          console.log(data);
           await onData(data);
         } catch (err) {
           console.error("Error in onData callback:", err);

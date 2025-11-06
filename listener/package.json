@@ -1,0 +1,13 @@
+{
+  "name": "listener",
+  "version": "1.0.0",
+  "main": "listener.js",
+  "keywords": [],
+  "type": "module",
+  "author": "Austin Nabil Blass",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "description": "Archeology sentry is a website to give archeologists data on heat and humidity in a site to prevent artifict decay.",
+  "scripts": {
+    "prod": "node listener.js"
+  }
+}

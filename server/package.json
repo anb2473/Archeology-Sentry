@@ -1,21 +1,28 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@prisma/client": "^6.18.0",
-    "@serialport/parser-readline": "^13.0.0",
-    "cookie-parser": "^1.4.7",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "prisma": "^6.18.0",
-    "serialport": "^13.0.0",
-    "winston": "^3.18.3"
-  }
+ "name": "archeology-sentry",
+ "version": "1.0.0",
+ "main": "server.js",
+ "scripts": {
+  "prod": "node server.js"
+ },
+ "keywords": [],
+ "type": "module",
+ "author": "Austin Nabil Blass",
+ "license": "SEE LICENSE IN LICENSE.md",
+ "description": "Archeology sentry is a website to give archeologists data on heat and humidity in a site to prevent artifict decay.",
+ "dependencies": {
+  "@serialport/parser-readline": "^13.0.0",
+  "bcryptjs": "^3.0.3",
+  "cookie-parser": "^1.4.7",
+  "dotenv": "^17.2.3",
+  "express": "^5.1.0",
+  "jsonwebtoken": "^9.0.2",
+  "prisma": "^6.18.0",
+  "serialport": "^13.0.0",
+  "validator": "^13.15.20",
+  "winston": "^3.18.3"
+ },
+ "devDependencies": {
+  "@prisma/client": "^6.18.0"
+ }
 }
