@@ -118,7 +118,7 @@ app.get('/', (req, res) => {
             .section .content-wrapper {
                 position: relative;
                 z-index: 2;
-                padding: 0 24px;
+                    padding: 48px;
                 background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
                 backdrop-filter: blur(10px);
                 border-radius: 20px;
@@ -166,7 +166,7 @@ app.get('/', (req, res) => {
                 75% { transform: translate(-15px, -5px); }
             }
             .section h1, .section h2 {
-                margin: 0 0 24px 0;
+                margin: 0 0 36px 0;
                 font-size: 3rem;
                 font-weight: 900;
                 letter-spacing: -1.5px;
@@ -175,7 +175,7 @@ app.get('/', (req, res) => {
                 color: var(--muted);
                 font-size: 1.25rem;
                 max-width: 600px;
-                margin: 0 auto 32px auto;
+                    margin: 0 auto 48px auto;
             }
             .section .focus-anim {
                 display: inline-block;
@@ -217,11 +217,84 @@ app.get('/', (req, res) => {
             .section .icon:hover {
                 transform: scale(1.15) rotate(-8deg);
             }
+            /* Tablet and smaller desktops */
+            @media (max-width: 1024px) {
+                .section .content-wrapper {
+                    padding: 36px;
+                    width: 95%;
+                }
+                .section h1, .section h2 {
+                    font-size: 2.5rem;
+                    margin: 0 0 28px 0;
+                }
+                .section p {
+                    font-size: 1.15rem;
+                    margin: 0 auto 36px auto;
+                }
+                .section .icon {
+                    font-size: 3rem;
+                }
+            }
+
+            /* Mobile devices */
             @media (max-width: 600px) {
-                .navbar { padding: 18px 6vw 0 6vw; }
-                .section h1, .section h2 { font-size: 2rem; }
-                .section p { font-size: 1rem; }
-                .section .big-btn { font-size: 1rem; padding: 14px 24px; }
+                .navbar { 
+                    padding: 16px 4vw 0 4vw;
+                }
+                .navbar .logo {
+                    width: 44px;
+                    height: 44px;
+                }
+                .navbar .cta {
+                    font-size: 0.95rem;
+                    padding: 10px 20px;
+                }
+                .section .content-wrapper {
+                    padding: 24px;
+                    width: 92%;
+                    border-radius: 16px;
+                }
+                .section h1, .section h2 { 
+                    font-size: 1.75rem;
+                    margin: 0 0 20px 0;
+                    letter-spacing: -0.5px;
+                }
+                .section p { 
+                    font-size: 1rem;
+                    margin: 0 auto 28px auto;
+                    line-height: 1.5;
+                }
+                .section .big-btn { 
+                    font-size: 1rem;
+                    padding: 14px 24px;
+                    width: 100%;
+                    max-width: 280px;
+                }
+                .section .icon {
+                    font-size: 2.5rem;
+                    margin-bottom: 14px;
+                }
+                .floating-element {
+                    display: none; /* Hide floating elements on mobile for better performance */
+                }
+            }
+
+            /* Small mobile devices */
+            @media (max-width: 380px) {
+                .navbar { 
+                    padding: 12px 3vw 0 3vw;
+                }
+                .section .content-wrapper {
+                    padding: 20px;
+                }
+                .section h1, .section h2 {
+                    font-size: 1.5rem;
+                    margin: 0 0 16px 0;
+                }
+                .section p {
+                    font-size: 0.95rem;
+                    margin: 0 auto 24px auto;
+                }
             }
         </style>
     </head>
