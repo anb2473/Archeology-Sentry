@@ -21,6 +21,6 @@ router.post('/sensor-data', async (req, res) => {
         logger.error('Error saving sensor data:', error);
         return res.status(500).json({ err: 'Internal server error' });
     }
-})
+});
 
 export default router;
