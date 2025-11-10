@@ -228,7 +228,7 @@ router.get('/signup', async (req, res) => {
                     });
 
                     if (response.ok) {
-                        window.location.href = '/'; // Redirect to home on success
+                        window.location.href = '/user/analytics'; // Redirect to analytics dashboard
                     } else {
                         const data = await response.json();
                         errorElement.textContent = data.err || 'Signup failed';
@@ -514,7 +514,7 @@ router.get('/login', async (req, res) => {
                     });
 
                     if (response.ok) {
-                        window.location.href = '/'; // Redirect to home on success
+                        window.location.href = '/user/analytics'; // Redirect to analytics dashboard
                     } else {
                         const data = await response.json();
                         errorElement.textContent = data.err || 'Login failed';
@@ -530,7 +530,7 @@ router.get('/login', async (req, res) => {
     </html>`);
 });
 
-router.post('/signup', async (req, res) => {
+router.post('/login', async (req, res) => {
     try {
         const auth = parseBasicAuth(req);
         if (!auth) return res.status(400).json({ err: 'Missing Basic Auth' });

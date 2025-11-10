@@ -139,11 +139,10 @@ app.get('/', (req, res) => {
                 position: absolute;
                 inset: 0;
                 z-index: 1;
-                background: radial-gradient(circle at center, 
-                    rgba(0,0,0,0) 0%,
-                    rgba(0,0,0,0.4) 100%
+                background: linear-gradient(to bottom, 
+                    rgba(0,0,0,0.3) 0%,
+                    rgba(0,0,0,0.5) 100%
                 );
-                mix-blend-mode: multiply;
                 pointer-events: none;
             }
             .section .floating-elements {
@@ -151,14 +150,15 @@ app.get('/', (req, res) => {
                 inset: 0;
                 z-index: 1;
                 pointer-events: none;
+                opacity: 0.4;
+                mix-blend-mode: soft-light;
             }
             .section .floating-element {
                 position: absolute;
-                background: rgba(255,255,255,0.1);
+                background: rgba(255,255,255,0.05);
                 border-radius: 50%;
-                filter: blur(4px);
+                filter: blur(8px);
                 animation: float 20s infinite;
-            }
             @keyframes float {
                 0%, 100% { transform: translate(0, 0); }
                 25% { transform: translate(10px, -10px); }

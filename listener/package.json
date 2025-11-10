@@ -11,6 +11,8 @@
  "license": "SEE LICENSE IN LICENSE.md",
  "description": "The Sentry Listener monitors a serial port to recieve data from the sentry.",
  "dependencies": {
-  "node-fetch": "^3.3.2"
+  "dotenv": "^17.2.3",
+  "node-fetch": "^3.3.2",
+  "serialport": "^13.0.0"
  }
 }
