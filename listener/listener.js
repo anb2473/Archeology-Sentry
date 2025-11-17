@@ -7,14 +7,14 @@ dotenv.config();
 // Use SERVER_URL env var so we can switch between http/https in different environments.
 // Default to HTTP localhost because the server is commonly run without TLS in dev.
 const SERVER_URL = process.env.SERVER_URL || 'http://127.0.0.1:3000';
-const email_or_username = process.env.EMAIL_OR_USERNAME
+const email = process.env.EMAIL
 const passw = process.env.PASSW
 
 let authCookie = null;
 
 async function getAuthToken() {
     try {
-        const credentials = Buffer.from(`${email_or_username}:${passw}`).toString('base64');
+        const credentials = Buffer.from(`${email}:${passw}`).toString('base64');
 
     const response = await fetch(`${SERVER_URL}/auth/login`, {
             method: 'POST',

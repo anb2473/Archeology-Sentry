@@ -174,8 +174,15 @@ router.get('/sensor-data', async (req, res) => {
   // timeframe in minutes. Accept 'all' to return everything.
   try {
     const data = await prisma.dataPoint.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+        select: { email: true }
+        }
+      }
     });
+
+    console.log(data)
 
     return res.status(200).json(data);
   } catch (error) {

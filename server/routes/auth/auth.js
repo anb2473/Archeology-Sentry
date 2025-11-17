@@ -18,8 +18,8 @@ function parseBasicAuth(req) {
 
   const base64Credentials = authHeader.split(' ')[1];
   const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
-  const [usernameOrEmail, password] = credentials.split(':');
-  return { usernameOrEmail, password };
+  const [email, password] = credentials.split(':');
+  return { email, password };
 }
 
 router.get('/signup', async (req, res) => {
@@ -250,7 +250,7 @@ router.post('/signup', async (req, res) => {
 
         if (!auth) return res.status(400).json({ err: 'Missing Basic Auth' });
 
-        const email = auth.usernameOrEmail.trim();  // not username for signup
+        const email = auth.email.trim();  // not username for signup
         const passw = auth.password;
 
         if (!validator.isEmail(email)) {
@@ -535,20 +535,17 @@ router.post('/login', async (req, res) => {
         const auth = parseBasicAuth(req);
         if (!auth) return res.status(400).json({ err: 'Missing Basic Auth' });
 
-        const emailOrUsername = auth.usernameOrEmail.trim();
+        const email = auth.email.trim();
         const passw = auth.password;
 
         // Validate input
-        if (validator.isEmail(emailOrUsername)) {
+        if (validator.isEmail(email)) {
             // Check domain
             const allowedDomains = ['gmail.com', 'yahoo.com', 'proton.me'];
-            const domain = emailOrUsername.split('@')[1];
+            const domain = email.split('@')[1];
             if (!allowedDomains.includes(domain)) {
                 return res.status(400).json({ err: 'Email domain not allowed' });
             }
-        }   // If not email assume its a username 
-        else if (emailOrUsername.trim() === '') {
-              return res.status(400).json({ err: 'Username cannot be empty' });
         }
 
         if (typeof passw !== 'string' || passw.length < minPasswLen) {     // Input validation
@@ -559,8 +556,7 @@ router.post('/login', async (req, res) => {
         const user = await prisma.user.findFirst({
             where: {
               OR: [
-                { email: emailOrUsername },
-                { username: emailOrUsername }
+                { email: email },
               ]
             }
         });
