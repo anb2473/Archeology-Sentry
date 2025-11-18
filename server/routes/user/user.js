@@ -83,7 +83,7 @@ router.get('/analytics', (req, res) => {
           </div>
         </div>
         <script>
-          async function fetch_analytics() {   
+          async function fetch_analytics(timeframe) {   
             const url = '/user/sensor-data';
             const analytics = {};
 
@@ -102,10 +102,12 @@ router.get('/analytics', (req, res) => {
                     analytics[fref] = [];
                 }
 
-                analytics[fref].push({
-                    x: point.createdAt,
-                    y: point.value
-                });
+                if (point.createdAt >= Date.now() - timeframe) {
+                  analytics[fref].push({
+                      x: point.createdAt,
+                      y: point.value
+                  });
+                }
             }
 
             return analytics
@@ -164,7 +166,8 @@ router.get('/analytics', (req, res) => {
           }
 
           (async () => {
-              const analytics = await fetch_analytics();
+              const oneHour = 60 * 60 * 1000;
+              const analytics = await fetch_analytics(oneHour);
               console.log(analytics);
               render_analytics(analytics);
           })();
