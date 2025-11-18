@@ -102,7 +102,9 @@ router.get('/analytics', (req, res) => {
                     analytics[fref] = [];
                 }
 
-                if (point.createdAt >= Date.now() - timeframe) {
+                const createdMs = new Date(point.createdAt).getTime();
+
+                if (createdMs >= Date.now() - timeframe) {
                   analytics[fref].push({
                       x: point.createdAt,
                       y: point.value
