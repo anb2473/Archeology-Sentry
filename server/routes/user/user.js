@@ -79,6 +79,19 @@ router.get('/analytics', (req, res) => {
             </a>
         </nav>
         <div class="page-wrapper">
+          <label for="timeframe-search" class="search-label">Search</label>
+          <input id="timeframe-search"
+            type="text"
+            maxlength="50"
+            placeholder="60 min"
+            style="
+              width:160px;
+              height:30px;
+              padding:4px 8px;
+              border-radius:6px;
+              border:1px solid #ccc;
+              font-size:14px;
+            " />
           <div id="list-wrapper">
           </div>
         </div>
@@ -172,6 +185,21 @@ router.get('/analytics', (req, res) => {
               const analytics = await fetch_analytics(oneHour);
               console.log(analytics);
               render_analytics(analytics);
+
+              const input = document.getElementById('search-timeframe');
+
+              input.addEventListener('input', async () => {
+                  split_query = input.value.split(" ");
+                  timeframe = parseInt(split_query[0])
+                  if (split_query[split_query.length - 1] == "min") {
+                    timeframe *= 60 * 1000
+                  }
+                  const analytics = await fetch_analytics();
+                  console.log(analytics);
+                  const wrapper = document.getElementById('list-wrapper');
+                  wrapper.querySelectorAll('div').forEach(div => div.remove());
+                  render_analytics(analytics);
+              });
           })();
         </script>
     </body>
