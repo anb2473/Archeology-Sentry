@@ -159,6 +159,7 @@ app.get('/', (req, res) => {
                 border-radius: 50%;
                 filter: blur(8px);
                 animation: float 20s infinite;
+            }
             @keyframes float {
                 0%, 100% { transform: translate(0, 0); }
                 25% { transform: translate(10px, -10px); }
@@ -189,7 +190,7 @@ app.get('/', (req, res) => {
                 box-shadow: 0 2px 16px var(--accent);
                 outline: none;
             }
-            .section .big-btn {
+            .big-btn {
                 background: var(--accent);
                 color: #111;
                 border: none;
@@ -202,12 +203,12 @@ app.get('/', (req, res) => {
                 box-shadow: 0 2px 12px rgba(78,205,196,0.08);
                 transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
             }
-                    .section .big-btn:hover, .section .big-btn:focus {
-                        background: #7be3db;
-                        color: #111;
-                        box-shadow: 0 4px 24px var(--accent);
-                        transform: translateY(-2px) scale(1.04);
-                    }
+            .big-btn:hover, .section .big-btn:focus {
+                background: #7be3db;
+                color: #111;
+                box-shadow: 0 4px 24px var(--accent);
+                transform: translateY(-2px) scale(1.04);
+            }
             .section .icon {
                 font-size: 3.5rem;
                 margin-bottom: 18px;
