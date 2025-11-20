@@ -16,60 +16,129 @@ router.get('/analytics', (req, res) => {
         <title>Login - Archeology Sentry</title>
         <style>
             :root {
-                --bg: #111;
-                --fg: #fff;
-                --accent: #4ecdc4;
-                --muted: #bfbfbf;
-                --error: #ff4444;
-            }
-            html, body {
-                height: 100%;
-                margin: 0;
-                background: var(--bg);
-                color: var(--fg);
-                font-family: 'Inter', system-ui, Arial, sans-serif;
-            }
-            /* ensure padding and width calculations are predictable */
-            *, *::before, *::after { box-sizing: border-box; }
-            .page-wrapper {
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-image: url('/images/login-img.jpg');
-                background-size: cover;
-                background-position: center;
-                position: relative;
-                isolation: isolate;
-            }
-            .page-wrapper::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.8) 100%);
-                z-index: -1;
-            }
-            .navbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                padding: 1rem;
-                display: flex;
-                align-items: center;
-                z-index: 10;
-            }
-            .navbar .logo {
-                width: 48px;
-                height: 48px;
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            .navbar .logo img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
+    --bg: #111;
+    --fg: #fff;
+    --accent: #4ecdc4;
+    --muted: #bfbfbf;
+    --error: #ff4444;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    background-image: url('/images/login-img.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    isolation: isolate;
+}
+
+.page-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);
+    z-index: -1;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    z-index: 10;
+}
+
+.navbar .logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.navbar .logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Search Styling */
+.search-label {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+}
+
+#timeframe-search {
+    width: 200px;
+    max-width: 80vw;
+    height: 38px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    color: var(--fg);
+    background-color: rgba(255,255,255,0.05);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+#timeframe-search::placeholder {
+    color: var(--muted);
+}
+
+#timeframe-search:focus {
+    border-color: var(--accent);
+    background-color: rgba(78,205,196,0.1);
+}
+
+/* Graph container */
+#list-wrapper {
+    width: 100%;
+    max-width: 900px;
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Canvas styling with preserved aspect ratio */
+canvas {
+    width: 100%;
+    aspect-ratio: 16 / 9;  /* clean, non-stretched shape */
+    border-radius: 12px;
+    padding: 1rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(78,205,196,0.3);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+    canvas {
+        aspect-ratio: 4 / 3; /* better for smaller screens */
+    }
+    #timeframe-search {
+        width: 100%;
+    }
+}
+
         </style>
     </head>
     <body>
@@ -84,14 +153,7 @@ router.get('/analytics', (req, res) => {
             type="text"
             maxlength="50"
             placeholder="60 min"
-            style="
-              width:160px;
-              height:30px;
-              padding:4px 8px;
-              border-radius:6px;
-              border:1px solid #ccc;
-              font-size:14px;
-            " />
+          />
           <div id="list-wrapper">
           </div>
         </div>
@@ -137,7 +199,7 @@ router.get('/analytics', (req, res) => {
               canvas.id = \`canvas-\${user}\`
               canvas.width = 200
               canvas.height = 100
-              canvas.style.border = "1px solid black"
+              canvas.style.border = "1px solid rgba(75, 192, 192, 1)',"
 
               canvasContainer.appendChild(canvas)
               const ctx = canvas.getContext("2d");
@@ -186,19 +248,24 @@ router.get('/analytics', (req, res) => {
               console.log(analytics);
               render_analytics(analytics);
 
-              const input = document.getElementById('search-timeframe');
+              const input = document.getElementById('timeframe-search');
 
-              input.addEventListener('input', async () => {
-                  split_query = input.value.split(" ");
-                  timeframe = parseInt(split_query[0])
-                  if (split_query[split_query.length - 1] == "min") {
-                    timeframe *= 60 * 1000
-                  }
-                  const analytics = await fetch_analytics();
-                  console.log(analytics);
-                  const wrapper = document.getElementById('list-wrapper');
-                  wrapper.querySelectorAll('div').forEach(div => div.remove());
-                  render_analytics(analytics);
+              input.addEventListener('keydown', async (e) => {
+                if (e.key !== 'Enter') return;
+                
+                split_query = input.value.split(" ");
+                timeframe = parseInt(split_query[0])
+                if (split_query[split_query.length - 1] == "min") {
+                  timeframe *= 60 * 1000
+                }
+                const analytics = await fetch_analytics(timeframe);
+                console.log(analytics);
+                const wrapper = document.getElementById('list-wrapper');
+                // Remove all child elements
+                while (wrapper.firstChild) {
+                    wrapper.firstChild.remove();
+                }
+                render_analytics(analytics);
               });
           })();
         </script>
