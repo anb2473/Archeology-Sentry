@@ -200,6 +200,8 @@ router.get('/analytics', (req, res) => {
               canvas.height = 100
               canvas.style.border = "1px solid rgba(75, 192, 192, 1)',"
 
+              const split_ref = user.split(" ");
+
               canvasContainer.appendChild(canvas)
               const ctx = canvas.getContext("2d");
               new Chart(ctx, {
@@ -217,7 +219,7 @@ router.get('/analytics', (req, res) => {
                   plugins: {
                     title: {
                       display: true,
-                      text: user,
+                      text: split_ref[0],
                       font: {
                         size: 20,
                       },
@@ -247,9 +249,11 @@ router.get('/analytics', (req, res) => {
                     },
                     y: {
                         beginAtZero: true,
+                        suggestedMin: 32,
+                        suggestedMax: 122,
                         title: {
                             display: true,
-                            text: 'Value',
+                            text: split_ref[1].charAt(0).toUpperCase() + split_ref[1].slice(1),
                             font: {
                               size: 16,
                             },
