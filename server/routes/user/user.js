@@ -192,6 +192,11 @@ router.get('/analytics', (req, res) => {
           function render_analytics(analytics) {
             const canvasContainer = document.getElementById("list-wrapper");
 
+            type_range = {
+              "humidity": [0, 80],
+              "temperature": [32, 122]
+            }
+
             for (let user in analytics) {
               let user_analytics = analytics[user]
               const canvas = document.createElement("canvas")  
@@ -201,7 +206,8 @@ router.get('/analytics', (req, res) => {
               canvas.style.border = "1px solid rgba(75, 192, 192, 1)',"
 
               const split_ref = user.split(" ");
-
+              const range = type_range[split_ref[1]]
+              
               canvasContainer.appendChild(canvas)
               const ctx = canvas.getContext("2d");
               new Chart(ctx, {
@@ -249,8 +255,8 @@ router.get('/analytics', (req, res) => {
                     },
                     y: {
                         beginAtZero: true,
-                        suggestedMin: 32,
-                        suggestedMax: 122,
+                        suggestedMin: range[0],
+                        suggestedMax: range[1],
                         title: {
                             display: true,
                             text: split_ref[1].charAt(0).toUpperCase() + split_ref[1].slice(1),
