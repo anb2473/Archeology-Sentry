@@ -16,129 +16,128 @@ router.get('/analytics', (req, res) => {
         <title>Login - Archeology Sentry</title>
         <style>
             :root {
-    --bg: #111;
-    --fg: #fff;
-    --accent: #4ecdc4;
-    --muted: #bfbfbf;
-    --error: #ff4444;
-}
+                --bg: #111;
+                --fg: #fff;
+                --accent: #4ecdc4;
+                --muted: #bfbfbf;
+                --error: #ff4444;
+            }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: 'Inter', system-ui, Arial, sans-serif;
-}
+            html, body {
+                height: 100%;
+                margin: 0;
+                background: var(--bg);
+                color: var(--fg);
+                font-family: 'Inter', system-ui, Arial, sans-serif;
+            }
 
-*, *::before, *::after { box-sizing: border-box; }
+            *, *::before, *::after { box-sizing: border-box; }
 
-.page-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 1rem;
-    background-image: url('/images/login-img.jpg');
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    isolation: isolate;
-}
+            .page-wrapper {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 2rem 1rem;
+                background-image: url('/images/login-img.jpg');
+                background-size: cover;
+                background-position: center;
+                position: relative;
+                isolation: isolate;
+            }
 
-.page-wrapper::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);
-    z-index: -1;
-}
+            .page-wrapper::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);
+                z-index: -1;
+            }
 
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    z-index: 10;
-}
+            .navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                padding: 1rem;
+                display: flex;
+                align-items: center;
+                z-index: 10;
+            }
 
-.navbar .logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    overflow: hidden;
-}
+            .navbar .logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 8px;
+                overflow: hidden;
+            }
 
-.navbar .logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+            .navbar .logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
 
-/* Search Styling */
-.search-label {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    color: var(--accent);
-    letter-spacing: 0.5px;
-}
+            /* Search Styling */
+            .search-label {
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+                color: var(--accent);
+                letter-spacing: 0.5px;
+            }
 
-#timeframe-search {
-    width: 200px;
-    max-width: 80vw;
-    height: 38px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    border: 1px solid var(--accent);
-    color: var(--fg);
-    background-color: rgba(255,255,255,0.05);
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-}
+            #timeframe-search {
+                width: 200px;
+                max-width: 80vw;
+                height: 38px;
+                padding: 6px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--accent);
+                color: var(--fg);
+                background-color: rgba(255,255,255,0.05);
+                font-size: 15px;
+                outline: none;
+                transition: border-color 0.2s ease, background-color 0.2s ease;
+            }
 
-#timeframe-search::placeholder {
-    color: var(--muted);
-}
+            #timeframe-search::placeholder {
+                color: var(--muted);
+            }
 
-#timeframe-search:focus {
-    border-color: var(--accent);
-    background-color: rgba(78,205,196,0.1);
-}
+            #timeframe-search:focus {
+                border-color: var(--accent);
+                background-color: rgba(78,205,196,0.1);
+            }
 
-/* Graph container */
-#list-wrapper {
-    width: 100%;
-    max-width: 900px;
-    margin-top: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
+            /* Graph container */
+            #list-wrapper {
+                width: 100%;
+                max-width: 900px;
+                margin-top: 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+            }
 
-/* Canvas styling with preserved aspect ratio */
-canvas {
-    width: 100%;
-    aspect-ratio: 16 / 9;  /* clean, non-stretched shape */
-    border-radius: 12px;
-    padding: 1rem;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(78,205,196,0.3);
-}
+            /* Canvas styling with preserved aspect ratio */
+            canvas {
+                width: 100%;
+                aspect-ratio: 16 / 9;  /* clean, non-stretched shape */
+                border-radius: 12px;
+                padding: 1rem;
+                background: rgba(255,255,255,0.04);
+                border: 1px solid rgba(78,205,196,0.3);
+              }
 
-/* Mobile responsiveness */
-@media (max-width: 600px) {
-    canvas {
-        aspect-ratio: 4 / 3; /* better for smaller screens */
-    }
-    #timeframe-search {
-        width: 100%;
-    }
-}
-
+              /* Mobile responsiveness */
+              @media (max-width: 600px) {
+                  canvas {
+                      aspect-ratio: 4 / 3; /* better for smaller screens */
+                  }
+                  #timeframe-search {
+                      width: 100%;
+                  }
+              }
         </style>
     </head>
     <body>
@@ -207,34 +206,55 @@ canvas {
                 type: 'line',
                 data: {
                   datasets: [{
-                    label: user,
                     data: user_analytics,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1,
                     fill: false
+
                   }]
                 },
                 options: {
+                  plugins: {
+                    title: {
+                      display: true,
+                      text: user,
+                      font: {
+                        size: 20,
+                      },
+                      color: '#ffffff89',
+                      padding: { top: 10, bottom: 20 },
+                      align: 'center'
+                    },
+                    legend: { display: false }
+                  },
                   scales: {
                     x: {
                         type: 'time',
                         time: {
-                            unit: 'hour', // Display unit (e.g., 'minute', 'day', 'month')
+                            unit: 'minute', // Display unit (e.g., 'minute', 'day', 'month')
                             displayFormats: {
-                                hour: 'MMM D, HH:mm' // Format for displaying time
+                                hour: 'HH:mm' // Format for displaying time
                             }
                         },
                         title: {
                             display: true,
-                            text: 'Time'
+                            text: 'Time',
+                            font: {
+                              size: 16,
+                            },
+                            color: '#ffffff89'
                         }
                     },
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Value'
-                        }
+                            text: 'Value',
+                            font: {
+                              size: 16,
+                            },
+                            color: '#ffffff89'
+                        },
                     }
                 }
                 }

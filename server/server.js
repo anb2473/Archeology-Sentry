@@ -59,9 +59,12 @@ app.get('/', (req, res) => {
                 z-index: 10;
             }
             .navbar .logo {
-                width: 54px; height: 54px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-                transition: box-shadow 0.2s;
+                width: 54px; 
+                height: 54px; 
+                border-radius: 12px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
                 overflow: hidden;
             }
             .navbar .logo img {
@@ -79,12 +82,12 @@ app.get('/', (req, res) => {
                 box-shadow: 0 2px 12px rgba(78,205,196,0.08);
                 transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
             }
-                    .navbar .cta:hover, .navbar .cta:focus {
-                        background: #7be3db;
-                        color: #111;
-                        box-shadow: 0 4px 24px var(--accent);
-                        transform: translateY(-2px) scale(1.04);
-                    }
+            .navbar .cta:hover, .navbar .cta:focus {
+                background: #7be3db;
+                color: #111;
+                box-shadow: 0 4px 24px var(--accent);
+                transform: translateY(-2px) scale(1.04);
+            }
             .section {
                 min-height: 100vh;
                 display: flex;
@@ -182,7 +185,7 @@ app.get('/', (req, res) => {
                 display: inline-block;
                 transition: color 0.3s, background 0.3s, box-shadow 0.3s;
                 border-radius: 6px;
-                padding: 0 6px;
+                padding: 6px;
             }
             .section .focus-anim:focus, .section .focus-anim:hover {
                 color: var(--bg);
