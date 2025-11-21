@@ -33,26 +33,39 @@ router.get('/analytics', (req, res) => {
 
             *, *::before, *::after { box-sizing: border-box; }
 
-            .page-wrapper {
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 2rem 1rem;
-                background-image: url('/images/login-img.jpg');
-                background-size: cover;
-                background-position: center;
-                position: relative;
-                isolation: isolate;
+            #app {
+                filter: blur(15px);
+                opacity: 0;
+                transition: filter 0.8s ease, opacity 0.8s ease;
             }
 
-            .page-wrapper::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);
-                z-index: -1;
-            }
+           #app-bg {
+              min-height: 100vh;
+              position: relative;
+              
+              background-image: url('/images/login-img.jpg');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              background-attachment: fixed; /* Keeps it from scrolling */
+          }
+
+          .page-wrapper {
+              min-height: 100vh;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              padding: 2rem 1rem;
+              position: relative;
+          }
+
+          #app-bg::before {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);
+              z-index: 0;
+          }
 
             .navbar {
                 width: 100%;
@@ -69,12 +82,14 @@ router.get('/analytics', (req, res) => {
             }
 
             .navbar .logo {
-                width: 48px;
-                height: 48px;
-                border-radius: 8px;
+                width: 54px; 
+                height: 54px; 
+                border-radius: 12px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
                 overflow: hidden;
             }
-
             .navbar .logo img {
                 width: 100%;
                 height: 100%;
@@ -163,29 +178,26 @@ router.get('/analytics', (req, res) => {
                     padding: 10px 20px;
                   }
               }
-              #app {
-                  filter: blur(15px);
-                  opacity: 0;
-                  transition: filter 0.8s ease, opacity 0.8s ease;
-              }
         </style>
     </head>
     <body>
         <div id="app">
-          <nav class="navbar">
-              <a href="/" class="logo">
-                  <img src="/icon/logo.png" alt="Archeology Sentry" />
-              </a>
-              <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
-          </nav>
-          <div class="page-wrapper">
-            <label for="timeframe-search" class="search-label">Search</label>
-            <input id="timeframe-search"
-              type="text"
-              maxlength="50"
-              value="60 min"
-            />
-            <div id="list-wrapper">
+          <div id="app-bg">
+            <nav class="navbar">
+                <a href="/" class="logo">
+                    <img src="/icon/logo.png" alt="Archeology Sentry" />
+                </a>
+                <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
+            </nav>
+            <div class="page-wrapper">
+              <label for="timeframe-search" class="search-label">Search</label>
+              <input id="timeframe-search"
+                type="text"
+                maxlength="50"
+                value="60 min"
+              />
+              <div id="list-wrapper">
+              </div>
             </div>
           </div>
         </div>
@@ -232,7 +244,7 @@ router.get('/analytics', (req, res) => {
 
             for (let user in analytics) {
               let user_analytics = analytics[user]
-              const canvas = document.createElement("canvas")  
+            const canvas = document.createElement("canvas")  
               canvas.id = \`canvas-\${user}\`
               canvas.width = 200
               canvas.height = 100

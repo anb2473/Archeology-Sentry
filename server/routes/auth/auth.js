@@ -78,9 +78,12 @@ router.get('/signup', async (req, res) => {
                 z-index: 10;
             }
             .navbar .logo {
-                width: 48px;
-                height: 48px;
-                border-radius: 8px;
+                width: 54px; 
+                height: 54px; 
+                border-radius: 12px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
                 overflow: hidden;
             }
             .navbar .logo img {
@@ -420,9 +423,12 @@ router.get('/login', async (req, res) => {
                 z-index: 10;
             }
             .navbar .logo {
-                width: 48px;
-                height: 48px;
-                border-radius: 8px;
+                width: 54px; 
+                height: 54px; 
+                border-radius: 12px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
                 overflow: hidden;
             }
             .navbar .logo img {
