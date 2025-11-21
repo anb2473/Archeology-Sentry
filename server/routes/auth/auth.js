@@ -65,13 +65,16 @@ router.get('/signup', async (req, res) => {
                 z-index: -1;
             }
             .navbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                padding: 1rem;
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
                 display: flex;
                 align-items: center;
+                justify-content: space-between;
+                padding: 28px 5vw 0 5vw;
+                background: none;
+                position: absolute;
+                top: 0; left: 0;
                 z-index: 10;
             }
             .navbar .logo {
@@ -159,6 +162,24 @@ router.get('/signup', async (req, res) => {
             .alt-action a:hover {
                 text-decoration: underline;
             }
+            .navbar .cta {
+                background: var(--accent);
+                color: #111;
+                border: none;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                padding: 12px 32px;
+                cursor: pointer;
+                box-shadow: 0 2px 12px rgba(78,205,196,0.08);
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+            }
+            .navbar .cta:hover, .navbar .cta:focus {
+                background: #7be3db;
+                color: #111;
+                box-shadow: 0 4px 24px var(--accent);
+                transform: translateY(-2px) scale(1.04);
+            }
             .error-message {
                 color: var(--error);
                 background: rgba(255,68,68,0.1);
@@ -166,6 +187,13 @@ router.get('/signup', async (req, res) => {
                 border-radius: 8px;
                 margin-bottom: 1rem;
                 display: none;
+            }
+            /* Mobile responsiveness */
+            @media (max-width: 600px) {
+                .navbar .cta {
+                    font-size: 0.95rem;
+                    padding: 10px 20px;
+                }
             }
             @media (max-width: 480px) {
                 .auth-container {
@@ -179,6 +207,7 @@ router.get('/signup', async (req, res) => {
             <a href="/" class="logo">
                 <img src="/icon/logo.png" alt="Archeology Sentry" />
             </a>
+            <button class="cta" onclick="window.location.href='/auth/login'">Login</button>
         </nav>
         <div class="page-wrapper">
             <div class="auth-container">
@@ -362,13 +391,16 @@ router.get('/login', async (req, res) => {
                 z-index: -1;
             }
             .navbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                padding: 1rem;
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
                 display: flex;
                 align-items: center;
+                justify-content: space-between;
+                padding: 28px 5vw 0 5vw;
+                background: none;
+                position: absolute;
+                top: 0; left: 0;
                 z-index: 10;
             }
             .navbar .logo {
@@ -464,6 +496,31 @@ router.get('/login', async (req, res) => {
                 margin-bottom: 1rem;
                 display: none;
             }
+            .navbar .cta {
+                background: var(--accent);
+                color: #111;
+                border: none;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                padding: 12px 32px;
+                cursor: pointer;
+                box-shadow: 0 2px 12px rgba(78,205,196,0.08);
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+            }
+            .navbar .cta:hover, .navbar .cta:focus {
+                background: #7be3db;
+                color: #111;
+                box-shadow: 0 4px 24px var(--accent);
+                transform: translateY(-2px) scale(1.04);
+            }
+            /* Mobile responsiveness */
+            @media (max-width: 600px) {
+                .navbar .cta {
+                    font-size: 0.95rem;
+                    padding: 10px 20px;
+                }
+            }
             @media (max-width: 480px) {
                 .auth-container {
                     padding: 1.5rem;
@@ -476,6 +533,7 @@ router.get('/login', async (req, res) => {
             <a href="/" class="logo">
                 <img src="/icon/logo.png" alt="Archeology Sentry" />
             </a>
+            <button class="cta" onclick="window.location.href='/auth/signup'">Sign Up</button>
         </nav>
         <div class="page-wrapper">
             <div class="auth-container">

@@ -55,13 +55,16 @@ router.get('/analytics', (req, res) => {
             }
 
             .navbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                padding: 1rem;
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
                 display: flex;
                 align-items: center;
+                justify-content: space-between;
+                padding: 28px 5vw 0 5vw;
+                background: none;
+                position: absolute;
+                top: 0; left: 0;
                 z-index: 10;
             }
 
@@ -128,6 +131,24 @@ router.get('/analytics', (req, res) => {
                 background: rgba(255,255,255,0.04);
                 border: 1px solid rgba(78,205,196,0.3);
               }
+            .navbar .cta {
+                background: var(--accent);
+                color: #111;
+                border: none;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                padding: 12px 32px;
+                cursor: pointer;
+                box-shadow: 0 2px 12px rgba(78,205,196,0.08);
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+            }
+            .navbar .cta:hover, .navbar .cta:focus {
+                background: #7be3db;
+                color: #111;
+                box-shadow: 0 4px 24px var(--accent);
+                transform: translateY(-2px) scale(1.04);
+            }
 
               /* Mobile responsiveness */
               @media (max-width: 600px) {
@@ -137,6 +158,10 @@ router.get('/analytics', (req, res) => {
                   #timeframe-search {
                       width: 100%;
                   }
+                  .navbar .cta {
+                    font-size: 0.95rem;
+                    padding: 10px 20px;
+                  }
               }
         </style>
     </head>
@@ -145,13 +170,14 @@ router.get('/analytics', (req, res) => {
             <a href="/" class="logo">
                 <img src="/icon/logo.png" alt="Archeology Sentry" />
             </a>
+            <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
         </nav>
         <div class="page-wrapper">
           <label for="timeframe-search" class="search-label">Search</label>
           <input id="timeframe-search"
             type="text"
             maxlength="50"
-            placeholder="60 min"
+            value="60 min"
           />
           <div id="list-wrapper">
           </div>
