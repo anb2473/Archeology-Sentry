@@ -299,73 +299,80 @@ app.get('/', (req, res) => {
                     font-size: 0.95rem;
                     margin: 0 auto 24px auto;
                 }
+                #app {
+                  filter: blur(15px);
+                  opacity: 0;
+                  transition: filter 0.8s ease, opacity 0.8s ease;
+                }
             }
         </style>
     </head>
     <body>
-        <nav class="navbar">
-            <a href="#" class="logo" tabindex="0" aria-label="Home" title="Home">
-                <img src="/icon/logo.png" alt="Archeology Sentry logo" />
-            </a>
-            <button class="cta" onclick="window.location.href='/auth/login'">Get Started</button>
-        </nav>
-        <main>
-            <section class="section" id="hero">
-                <div class="bg-image" style="background-image: url('/images/cover.jpg')"></div>
-                <div class="parallax-overlay"></div>
-                <div class="floating-elements">
-                    <div class="floating-element" style="width:100px;height:100px;top:20%;left:10%"></div>
-                    <div class="floating-element" style="width:60px;height:60px;top:60%;right:15%"></div>
-                    <div class="floating-element" style="width:80px;height:80px;bottom:20%;left:20%"></div>
-                </div>
-                <div class="content-wrapper">
-                    <h1>Archeology Sentry</h1>
-                    <p><span class="focus-anim" tabindex="0">Protecting the past, one microclimate at a time.</span></p>
-                    <button class="big-btn" onclick="document.getElementById('section1').scrollIntoView({behavior:'smooth'})">Learn More</button>
-                </div>
-            </section>
-            <section class="section" id="section1">
-                <div class="bg-image" style="background-image: url('/images/decay.jpg')"></div>
-                <div class="parallax-overlay"></div>
-                <div class="floating-elements">
-                    <div class="floating-element" style="width:120px;height:120px;top:30%;right:10%"></div>
-                    <div class="floating-element" style="width:70px;height:70px;bottom:40%;left:15%"></div>
-                </div>
-                <div class="content-wrapper">
-                    <div class="icon" tabindex="0" title="Heat & Humidity">🌡️</div>
-                    <h2>Heat & Humidity: The Hidden Threat</h2>
-                    <p>Fluctuations in temperature and moisture silently accelerate artifact decay. <span class="focus-anim" tabindex="0">Preservation starts with awareness.</span></p>
-                </div>
-            </section>
-            <section class="section" id="section2">
-                <div class="bg-image" style="background-image: url('/images/monitoring.jpg')"></div>
-                <div class="parallax-overlay"></div>
-                <div class="floating-elements">
-                    <div class="floating-element" style="width:90px;height:90px;top:20%;left:20%"></div>
-                    <div class="floating-element" style="width:50px;height:50px;bottom:30%;right:25%"></div>
-                </div>
-                <div class="content-wrapper">
-                    <div class="icon" tabindex="0" title="Our Solution">🔬</div>
-                    <h2>Real-Time Microclimate Monitoring</h2>
-                    <p>Our device analyzes site conditions and <span class="focus-anim" tabindex="0">alerts you instantly</span> to risks like rising water or humidity spikes.</p>
-                </div>
-            </section>
-            <section class="section" id="section3">
-                <div class="bg-image" style="background-image: url('/images/sentry.jpeg')"></div>
-                <div class="parallax-overlay"></div>
-                <div class="floating-elements">
-                    <div class="floating-element" style="width:110px;height:110px;top:40%;right:20%"></div>
-                    <div class="floating-element" style="width:65px;height:65px;bottom:25%;left:25%"></div>
-                </div>
-                <div class="content-wrapper">
-                    <div class="icon" tabindex="0" title="Device">⚙️</div>
-                    <h2>Small Device, Big Impact</h2>
-                    <p>Deploy anywhere. <span class="focus-anim" tabindex="0">Low-power, always-on</span> sensors let you act before damage is done.</p>
-                    <button class="big-btn" onclick="window.location.href='/auth/login'">Get Started</button>
-                </div>
-            </section>
-        </main>
-            <script>
+        <div id="app">
+            <nav class="navbar">
+                <a href="#" class="logo" tabindex="0" aria-label="Home" title="Home">
+                    <img src="/icon/logo.png" alt="Archeology Sentry logo" />
+                </a>
+                <button class="cta" onclick="window.location.href='/auth/login'">Get Started</button>
+            </nav>
+            <main>
+                <section class="section" id="hero">
+                    <div class="bg-image" style="background-image: url('/images/cover.jpg')"></div>
+                    <div class="parallax-overlay"></div>
+                    <div class="floating-elements">
+                        <div class="floating-element" style="width:100px;height:100px;top:20%;left:10%"></div>
+                        <div class="floating-element" style="width:60px;height:60px;top:60%;right:15%"></div>
+                        <div class="floating-element" style="width:80px;height:80px;bottom:20%;left:20%"></div>
+                    </div>
+                    <div class="content-wrapper">
+                        <h1>Archeology Sentry</h1>
+                        <p><span class="focus-anim" tabindex="0">Protecting the past, one microclimate at a time.</span></p>
+                        <button class="big-btn" onclick="document.getElementById('section1').scrollIntoView({behavior:'smooth'})">Learn More</button>
+                    </div>
+                </section>
+                <section class="section" id="section1">
+                    <div class="bg-image" style="background-image: url('/images/decay.jpg')"></div>
+                    <div class="parallax-overlay"></div>
+                    <div class="floating-elements">
+                        <div class="floating-element" style="width:120px;height:120px;top:30%;right:10%"></div>
+                        <div class="floating-element" style="width:70px;height:70px;bottom:40%;left:15%"></div>
+                    </div>
+                    <div class="content-wrapper">
+                        <div class="icon" tabindex="0" title="Heat & Humidity">🌡️</div>
+                        <h2>Heat & Humidity: The Hidden Threat</h2>
+                        <p>Fluctuations in temperature and moisture silently accelerate artifact decay. <span class="focus-anim" tabindex="0">Preservation starts with awareness.</span></p>
+                    </div>
+                </section>
+                <section class="section" id="section2">
+                    <div class="bg-image" style="background-image: url('/images/monitoring.jpg')"></div>
+                    <div class="parallax-overlay"></div>
+                    <div class="floating-elements">
+                        <div class="floating-element" style="width:90px;height:90px;top:20%;left:20%"></div>
+                        <div class="floating-element" style="width:50px;height:50px;bottom:30%;right:25%"></div>
+                    </div>
+                    <div class="content-wrapper">
+                        <div class="icon" tabindex="0" title="Our Solution">🔬</div>
+                        <h2>Real-Time Microclimate Monitoring</h2>
+                        <p>Our device analyzes site conditions and <span class="focus-anim" tabindex="0">alerts you instantly</span> to risks like rising water or humidity spikes.</p>
+                    </div>
+                </section>
+                <section class="section" id="section3">
+                    <div class="bg-image" style="background-image: url('/images/sentry.jpeg')"></div>
+                    <div class="parallax-overlay"></div>
+                    <div class="floating-elements">
+                        <div class="floating-element" style="width:110px;height:110px;top:40%;right:20%"></div>
+                        <div class="floating-element" style="width:65px;height:65px;bottom:25%;left:25%"></div>
+                    </div>
+                    <div class="content-wrapper">
+                        <div class="icon" tabindex="0" title="Device">⚙️</div>
+                        <h2>Small Device, Big Impact</h2>
+                        <p>Deploy anywhere. <span class="focus-anim" tabindex="0">Low-power, always-on</span> sensors let you act before damage is done.</p>
+                        <button class="big-btn" onclick="window.location.href='/auth/login'">Get Started</button>
+                    </div>
+                </section>
+            </main>
+        </div>
+        <script>
             // Animate focus-anim spans and handle section transitions
             const sections = document.querySelectorAll('.section');
             const observer = new IntersectionObserver((entries) => {
@@ -419,6 +426,15 @@ app.get('/', (req, res) => {
                 el.style.animationDelay = Math.random() * -20 + 's';
                 el.style.animationDuration = (20 + Math.random() * 10) + 's';
             });
+        </script>
+        <script>
+          window.addEventListener("load", () => {
+              const app = document.getElementById("app");
+
+              // Unblur & fade in the page
+              app.style.filter = "blur(0px)";
+              app.style.opacity = "1";
+          });
         </script>
     </body>
     </html>`);

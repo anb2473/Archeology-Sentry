@@ -163,23 +163,30 @@ router.get('/analytics', (req, res) => {
                     padding: 10px 20px;
                   }
               }
+              #app {
+                  filter: blur(15px);
+                  opacity: 0;
+                  transition: filter 0.8s ease, opacity 0.8s ease;
+              }
         </style>
     </head>
     <body>
-        <nav class="navbar">
-            <a href="/" class="logo">
-                <img src="/icon/logo.png" alt="Archeology Sentry" />
-            </a>
-            <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
-        </nav>
-        <div class="page-wrapper">
-          <label for="timeframe-search" class="search-label">Search</label>
-          <input id="timeframe-search"
-            type="text"
-            maxlength="50"
-            value="60 min"
-          />
-          <div id="list-wrapper">
+        <div id="app">
+          <nav class="navbar">
+              <a href="/" class="logo">
+                  <img src="/icon/logo.png" alt="Archeology Sentry" />
+              </a>
+              <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
+          </nav>
+          <div class="page-wrapper">
+            <label for="timeframe-search" class="search-label">Search</label>
+            <input id="timeframe-search"
+              type="text"
+              maxlength="50"
+              value="60 min"
+            />
+            <div id="list-wrapper">
+            </div>
           </div>
         </div>
         <script>
@@ -324,6 +331,15 @@ router.get('/analytics', (req, res) => {
                 render_analytics(analytics);
               });
           })();
+        </script>
+        <script>
+          window.addEventListener("load", () => {
+              const app = document.getElementById("app");
+
+              // Unblur & fade in the page
+              app.style.filter = "blur(0px)";
+              app.style.opacity = "1";
+          });
         </script>
     </body>
     </html>`);

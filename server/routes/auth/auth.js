@@ -200,36 +200,43 @@ router.get('/signup', async (req, res) => {
                     padding: 1.5rem;
                 }
             }
+            #app {
+                filter: blur(15px);
+                opacity: 0;
+                transition: filter 0.8s ease, opacity 0.8s ease;
+            }
         </style>
     </head>
     <body>
-        <nav class="navbar">
-            <a href="/" class="logo">
-                <img src="/icon/logo.png" alt="Archeology Sentry" />
-            </a>
-            <button class="cta" onclick="window.location.href='/auth/login'">Login</button>
-        </nav>
-        <div class="page-wrapper">
-            <div class="auth-container">
-                <h1>Create Account</h1>
-                <div id="error-message" class="error-message"></div>
-                <form id="signup-form" onsubmit="handleSubmit(event)">
-                    <div class="input-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required autocomplete="email" />
+        <div id="app">
+            <nav class="navbar">
+                <a href="/" class="logo">
+                    <img src="/icon/logo.png" alt="Archeology Sentry" />
+                </a>
+                <button class="cta" onclick="window.location.href='/auth/login'">Login</button>
+            </nav>
+            <div class="page-wrapper">
+                <div class="auth-container">
+                    <h1>Create Account</h1>
+                    <div id="error-message" class="error-message"></div>
+                    <form id="signup-form" onsubmit="handleSubmit(event)">
+                        <div class="input-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required autocomplete="email" />
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required minlength="6" />
+                        </div>
+                        <div class="input-group">
+                            <label for="confirm-password">Confirm Password</label>
+                            <input type="password" id="confirm-password" name="confirm-password" required minlength="6" />
+                        </div>
+                        <button type="submit" class="submit-btn">Sign Up</button>
+                    </form>
+                    <div class="alt-action">
+                        Already have an account? <a href="/auth/login">Log In</a>
                     </div>
-                    <div class="input-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required minlength="6" />
-                    </div>
-                    <div class="input-group">
-                        <label for="confirm-password">Confirm Password</label>
-                        <input type="password" id="confirm-password" name="confirm-password" required minlength="6" />
-                    </div>
-                    <button type="submit" class="submit-btn">Sign Up</button>
-                </form>
-                <div class="alt-action">
-                    Already have an account? <a href="/auth/login">Log In</a>
                 </div>
             </div>
         </div>
@@ -268,6 +275,15 @@ router.get('/signup', async (req, res) => {
                     errorElement.style.display = 'block';
                 }
             }
+        </script>
+        <script>
+          window.addEventListener("load", () => {
+              const app = document.getElementById("app");
+
+              // Unblur & fade in the page
+              app.style.filter = "blur(0px)";
+              app.style.opacity = "1";
+          });
         </script>
     </body>
     </html>`);
@@ -526,32 +542,39 @@ router.get('/login', async (req, res) => {
                     padding: 1.5rem;
                 }
             }
+            #app {
+                filter: blur(15px);
+                opacity: 0;
+                transition: filter 0.8s ease, opacity 0.8s ease;
+            }
         </style>
     </head>
     <body>
-        <nav class="navbar">
-            <a href="/" class="logo">
-                <img src="/icon/logo.png" alt="Archeology Sentry" />
-            </a>
-            <button class="cta" onclick="window.location.href='/auth/signup'">Sign Up</button>
-        </nav>
-        <div class="page-wrapper">
-            <div class="auth-container">
-                <h1>Welcome Back</h1>
-                <div id="error-message" class="error-message"></div>
-                <form id="login-form" onsubmit="handleSubmit(event)">
-                    <div class="input-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required autocomplete="email" />
+        <div id="app">
+            <nav class="navbar">
+                <a href="/" class="logo">
+                    <img src="/icon/logo.png" alt="Archeology Sentry" />
+                </a>
+                <button class="cta" onclick="window.location.href='/auth/signup'">Sign Up</button>
+            </nav>
+            <div class="page-wrapper">
+                <div class="auth-container">
+                    <h1>Welcome Back</h1>
+                    <div id="error-message" class="error-message"></div>
+                    <form id="login-form" onsubmit="handleSubmit(event)">
+                        <div class="input-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required autocomplete="email" />
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required />
+                        </div>
+                        <button type="submit" class="submit-btn">Log In</button>
+                    </form>
+                    <div class="alt-action">
+                        Don't have an account? <a href="/auth/signup">Sign Up</a>
                     </div>
-                    <div class="input-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required />
-                    </div>
-                    <button type="submit" class="submit-btn">Log In</button>
-                </form>
-                <div class="alt-action">
-                    Don't have an account? <a href="/auth/signup">Sign Up</a>
                 </div>
             </div>
         </div>
@@ -583,6 +606,15 @@ router.get('/login', async (req, res) => {
                     errorElement.style.display = 'block';
                 }
             }
+        </script>
+        <script>
+          window.addEventListener("load", () => {
+              const app = document.getElementById("app");
+
+              // Unblur & fade in the page
+              app.style.filter = "blur(0px)";
+              app.style.opacity = "1";
+          });
         </script>
     </body>
     </html>`);
