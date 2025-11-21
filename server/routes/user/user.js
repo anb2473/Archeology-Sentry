@@ -177,6 +177,9 @@ router.get('/analytics', (req, res) => {
                     font-size: 0.95rem;
                     padding: 10px 20px;
                   }
+                  .page-wrapper {
+                    padding-top: 25%;
+                  }
               }
         </style>
     </head>
