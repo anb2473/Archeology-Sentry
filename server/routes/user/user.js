@@ -181,6 +181,30 @@ router.get('/analytics', (req, res) => {
                     padding-top: 25%;
                   }
               }
+
+            .cls-button {
+                background: transparent;
+                color: var(--accent);
+                border: 1px solid var(--accent);
+                border-radius: 8px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                padding: 10px 24px;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+                letter-spacing: 0.3px;
+            }
+
+            .cls-button:hover, .cls-button:focus {
+                background: var(--accent);
+                color: #111;
+                box-shadow: 0 4px 16px rgba(78,205,196,0.3);
+                transform: translateY(-2px);
+            }
+
+            .cls-button:active {
+                transform: translateY(0);
+            }
         </style>
     </head>
     <body>
@@ -246,17 +270,29 @@ router.get('/analytics', (req, res) => {
             }
 
             for (let user in analytics) {
-              let user_analytics = analytics[user]
-            const canvas = document.createElement("canvas")  
+              let user_analytics = analytics[user];
+              const split_ref = user.split(" ");
+              const range = type_range[split_ref[1]]
+
+              const wrapper_div = document.createElement("div")
+              canvasContainer.appendChild(wrapper_div)
+
+              const cls_button = document.createElement("button")
+              cls_button.addEventListener('click', () => {
+                  cls_data(event.target.id);
+              })
+              cls_button.className = 'cls-button'
+              cls_button.id = user
+              cls_button.textContent = 'Clear Data'
+              wrapper_div.appendChild(cls_button)
+              
+              const canvas = document.createElement("canvas")  
               canvas.id = \`canvas-\${user}\`
               canvas.width = 200
               canvas.height = 100
               canvas.style.border = "1px solid rgba(75, 192, 192, 1)',"
+              wrapper_div.appendChild(canvas)
 
-              const split_ref = user.split(" ");
-              const range = type_range[split_ref[1]]
-              
-              canvasContainer.appendChild(canvas)
               const ctx = canvas.getContext("2d");
               new Chart(ctx, {
                 type: 'line',
@@ -356,6 +392,19 @@ router.get('/analytics', (req, res) => {
               app.style.opacity = "1";
           });
         </script>
+        <script>
+          function cls_data(ref) {
+            fetch('/user/cls-data', {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  ref: ref
+                })
+            });
+          }
+        </script>
     </body>
     </html>`);
 });
@@ -413,5 +462,36 @@ router.get('/sensor-data', async (req, res) => {
     return res.status(500).json({ err: 'Internal server error' });
   }
 });
+
+router.delete('/cls-data', async (req, res) => {
+  const data_email_type = req.body.ref;
+  const split_ref = data_email_type.split(" ");
+  const email = split_ref[0]
+  const type = split_ref[1]
+  
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({err: 'User Not Found'})
+    }
+    
+    await prisma.dataPoint.deleteMany({
+      where: {
+        userId: user.id,
+        type: type
+      }
+    });
+
+    return res.status(200).json({ msg: 'Successfully Cleared Data' } )
+  } catch (error) {
+    logger.error('Error clearing sensor data:', error);
+    return res.status(500).json ({ err: 'Internal server error' })
+  }
+})
 
 export default router;
