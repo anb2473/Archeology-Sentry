@@ -205,6 +205,23 @@ router.get('/analytics', (req, res) => {
             .cls-button:active {
                 transform: translateY(0);
             }
+
+            .dataset-wrapper {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 1rem;                  /* Space between the canvas and buttons */
+                  padding: 1rem 1.5rem;       /* Internal padding */
+                  border-radius: 12px;
+                  background: rgba(255, 255, 255, 0.05);
+                  border: 1px solid rgba(78, 205, 196, 0.3);
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                  transition: transform 0.2s ease, box-shadow 0.2s ease;
+              }
+
+              .dataset-wrapper:hover {
+                  transform: translateY(-3px);
+                  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+              }
         </style>
     </head>
     <body>
@@ -275,6 +292,7 @@ router.get('/analytics', (req, res) => {
               const range = type_range[split_ref[1]]
 
               const wrapper_div = document.createElement("div")
+              wrapper_div.className = 'dataset-wrapper'
               canvasContainer.appendChild(wrapper_div)
 
               const cls_button = document.createElement("button")
