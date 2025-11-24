@@ -247,35 +247,16 @@ router.get('/analytics', (req, res) => {
         </div>
         <script>
           async function fetch_analytics(timeframe) {   
-            const url = '/user/sensor-data';
+            const url = \`/user/sensor-data?timeframe=\${timeframe}\`;
             const analytics = {};
 
             const response = await fetch(url, { method: 'GET' });
             if (!response.ok) return analytics;
 
             const data = await response.json();
+            console.log(data)
 
-            for (let i = 0; i < data.length; i++) {
-                const point = data[i];
-                const email = point.user.email;
-                const type = point.type
-                const fref = email + " " + type
-
-                if (!analytics[fref]) {
-                    analytics[fref] = [];
-                }
-
-                const createdMs = new Date(point.createdAt).getTime();
-
-                if (createdMs >= Date.now() - timeframe) {
-                  analytics[fref].push({
-                      x: point.createdAt,
-                      y: point.value
-                  });
-                }
-            }
-
-            return analytics
+            return data
           }
 
           function render_analytics(analytics) {
@@ -295,6 +276,13 @@ router.get('/analytics', (req, res) => {
               wrapper_div.className = 'dataset-wrapper'
               canvasContainer.appendChild(wrapper_div)
 
+              const canvas = document.createElement("canvas")  
+              canvas.id = \`canvas-\${user}\`
+              canvas.width = 200
+              canvas.height = 100
+              canvas.style.border = "1px solid rgba(75, 192, 192, 1)',"
+              wrapper_div.appendChild(canvas)
+
               const cls_button = document.createElement("button")
               cls_button.addEventListener('click', () => {
                   cls_data(event.target.id);
@@ -303,13 +291,7 @@ router.get('/analytics', (req, res) => {
               cls_button.id = user
               cls_button.textContent = 'Clear Data'
               wrapper_div.appendChild(cls_button)
-              
-              const canvas = document.createElement("canvas")  
-              canvas.id = \`canvas-\${user}\`
-              canvas.width = 200
-              canvas.height = 100
-              canvas.style.border = "1px solid rgba(75, 192, 192, 1)',"
-              wrapper_div.appendChild(canvas)
+
 
               const ctx = canvas.getContext("2d");
               new Chart(ctx, {
@@ -377,7 +359,6 @@ router.get('/analytics', (req, res) => {
           (async () => {
               const oneHour = 60 * 60 * 1000;
               const analytics = await fetch_analytics(oneHour);
-              console.log(analytics);
               render_analytics(analytics);
 
               const input = document.getElementById('timeframe-search');
@@ -391,7 +372,7 @@ router.get('/analytics', (req, res) => {
                   timeframe *= 60 * 1000
                 }
                 const analytics = await fetch_analytics(timeframe);
-                console.log(analytics);
+                // console.log(analytics);
                 const wrapper = document.getElementById('list-wrapper');
                 // Remove all child elements
                 while (wrapper.firstChild) {
@@ -463,18 +444,50 @@ router.post('/sensor-data', async (req, res) => {
 });
 
 router.get('/sensor-data', async (req, res) => {
-  // timeframe in minutes. Accept 'all' to return everything.
+  const timeframe = parseInt(req.query.timeframe);
+
   try {
+    if (typeof timeframe !== "number") {
+      return res.status(400).json({ err: "Cannot search by non integer timeframe"} )
+    }
+
+    const sinceDate = new Date(Date.now() - timeframe);
+
     const data = await prisma.dataPoint.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
+      where: {
+        createdAt: { gte: sinceDate },
+      },
+      select: {
+        createdAt: true,
+        value: true,
+        type: true,
         user: {
-        select: { email: true }
-        }
-      }
+          select: {
+            email: true,
+          },
+        },
+      },
     });
 
-    return res.status(200).json(data);
+    let analytics = {}
+
+    for (let i = 0; i < data.length; i++) {
+        const point = data[i];
+        const email = point.user.email;
+        const type = point.type
+        const fref = email + " " + type
+
+        if (!analytics[fref]) {
+            analytics[fref] = [];
+        }
+
+        analytics[fref].push({
+            x: point.createdAt,
+            y: point.value
+        });
+    }
+          
+    return res.status(200).json(analytics);
   } catch (error) {
     logger.error('Error retrieving sensor data:', error);
     return res.status(500).json({ err: 'Internal server error' });
