@@ -262,15 +262,56 @@ router.get('/analytics', (req, res) => {
           function render_analytics(analytics) {
             const canvasContainer = document.getElementById("list-wrapper");
 
+            // Y-axis display range
             type_range = {
               "humidity": [0, 80],
               "temperature": [32, 122]
             }
 
+            // Nominal range (acceptable operating range)
+            nominal_range = {
+              "humidity": [10, 20],
+              "temperature": [65, 75]
+            }
+
             for (let user in analytics) {
               let user_analytics = analytics[user];
               const split_ref = user.split(" ");
-              const range = type_range[split_ref[1]]
+              const range = type_range[split_ref[1]]  // Y-axis range
+              const nominalMin = nominal_range[split_ref[1]][0];
+              const nominalMax = nominal_range[split_ref[1]][1];
+
+              // Separate data points into below nominal min, normal, and above nominal max
+              const dataBelowNominal = [];
+              const dataNormal = [];
+              const dataAboveNominal = [];
+
+              // Get time range for threshold lines
+              let minTime = null;
+              let maxTime = null;
+
+              user_analytics.forEach(point => {
+                if (!minTime || point.x < minTime) minTime = point.x;
+                if (!maxTime || point.x > maxTime) maxTime = point.x;
+
+                if (point.y < nominalMin) {
+                  dataBelowNominal.push(point);
+                } else if (point.y > nominalMax) {
+                  dataAboveNominal.push(point);
+                } else {
+                  dataNormal.push(point);
+                }
+              });
+
+              // Create threshold line data points for nominal range
+              const minThresholdLine = minTime && maxTime ? [
+                { x: minTime, y: nominalMin },
+                { x: maxTime, y: nominalMin }
+              ] : [];
+              const maxThresholdLine = minTime && maxTime ? [
+                { x: minTime, y: nominalMax },
+                { x: maxTime, y: nominalMax }
+              ] : [];
 
               const wrapper_div = document.createElement("div")
               wrapper_div.className = 'dataset-wrapper'
@@ -297,13 +338,83 @@ router.get('/analytics', (req, res) => {
               new Chart(ctx, {
                 type: 'line',
                 data: {
-                  datasets: [{
-                    data: user_analytics,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    fill: false
-
-                  }]
+                  datasets: [
+                    // Below nominal min - blue
+                    {
+                      data: dataBelowNominal,
+                      borderColor: 'rgba(100, 149, 237, 1)', // Cornflower blue
+                      backgroundColor: 'rgba(100, 149, 237, 0.1)',
+                      borderWidth: 2,
+                      pointRadius: 4,
+                      pointBackgroundColor: 'rgba(100, 149, 237, 1)',
+                      pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                      pointBorderWidth: 1.5,
+                      pointHoverRadius: 6,
+                      pointHoverBackgroundColor: 'rgba(100, 149, 237, 1)',
+                      pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+                      pointHoverBorderWidth: 2,
+                      fill: false,
+                      tension: 0.1
+                    },
+                    // Normal range - teal
+                    {
+                      data: dataNormal,
+                      borderColor: 'rgba(75, 192, 192, 1)',
+                      backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                      borderWidth: 2,
+                      pointRadius: 3,
+                      pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                      pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                      pointBorderWidth: 1.5,
+                      pointHoverRadius: 5,
+                      pointHoverBackgroundColor: 'rgba(75, 192, 192, 1)',
+                      pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+                      pointHoverBorderWidth: 2,
+                      fill: false,
+                      tension: 0.1
+                    },
+                    // Above nominal max - red
+                    {
+                      data: dataAboveNominal,
+                      borderColor: 'rgba(255, 99, 132, 1)', // Red
+                      backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                      borderWidth: 2,
+                      pointRadius: 4,
+                      pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                      pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                      pointBorderWidth: 1.5,
+                      pointHoverRadius: 6,
+                      pointHoverBackgroundColor: 'rgba(255, 99, 132, 1)',
+                      pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+                      pointHoverBorderWidth: 2,
+                      fill: false,
+                      tension: 0.1
+                    },
+                    // Min nominal threshold line
+                    {
+                      data: minThresholdLine,
+                      borderColor: 'rgba(100, 149, 237, 0.6)',
+                      borderWidth: 2,
+                      borderDash: [5, 5],
+                      pointRadius: 0,
+                      pointHoverRadius: 0,
+                      fill: false,
+                      tension: 0,
+                      order: -1
+                    },
+                    // Max nominal threshold line
+                    {
+                      data: maxThresholdLine,
+                      borderColor: 'rgba(255, 99, 132, 0.6)',
+                      borderWidth: 2,
+                      borderDash: [5, 5],
+                      pointRadius: 0,
+                      pointHoverRadius: 0,
+                      fill: false,
+                      tension: 0,
+                      order: -1
+                    }
+                  ]
                 },
                 options: {
                   plugins: {
@@ -317,15 +428,34 @@ router.get('/analytics', (req, res) => {
                       padding: { top: 10, bottom: 20 },
                       align: 'center'
                     },
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      titleColor: '#ffffff',
+                      bodyColor: '#ffffff',
+                      borderColor: 'rgba(78, 205, 196, 0.5)',
+                      borderWidth: 1,
+                      padding: 12,
+                      displayColors: true,
+                      callbacks: {
+                        label: function(context) {
+                          let label = context.dataset.label || '';
+                          if (label) {
+                            label += ': ';
+                          }
+                          label += context.parsed.y.toFixed(1);
+                          return label;
+                        }
+                      }
+                    }
                   },
                   scales: {
                     x: {
                         type: 'time',
                         time: {
-                            unit: 'minute', // Display unit (e.g., 'minute', 'day', 'month')
+                            unit: 'minute',
                             displayFormats: {
-                                hour: 'HH:mm' // Format for displaying time
+                                hour: 'HH:mm'
                             }
                         },
                         title: {
@@ -335,10 +465,16 @@ router.get('/analytics', (req, res) => {
                               size: 16,
                             },
                             color: '#ffffff89'
+                        },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                          color: '#ffffff89'
                         }
                     },
                     y: {
-                        beginAtZero: true,
+                        beginAtZero: false,
                         suggestedMin: range[0],
                         suggestedMax: range[1],
                         title: {
@@ -349,6 +485,12 @@ router.get('/analytics', (req, res) => {
                             },
                             color: '#ffffff89'
                         },
+                        grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                          color: '#ffffff89'
+                        }
                     }
                 }
                 }
