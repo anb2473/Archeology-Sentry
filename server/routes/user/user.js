@@ -5,6 +5,14 @@ import logger from '../../logger.js';
 const router = express.Router();
 
 router.get('/analytics', (req, res) => {
+    const timeframe = req.query.timeframe || '3600000';
+    const type = req.query.type || '';
+    const userEmail = req.query.userEmail || '';
+    const start = req.query.start || '';
+    const end = req.query.end || '';
+    
+    const isCustomRange = start && end;
+    
     res.send(`<!doctype html>
     <html lang="en">
     <head>
@@ -47,7 +55,7 @@ router.get('/analytics', (req, res) => {
               background-size: cover;
               background-position: center;
               background-repeat: no-repeat;
-              background-attachment: fixed; /* Keeps it from scrolling */
+              background-attachment: fixed;
           }
 
           .page-wrapper {
@@ -96,7 +104,6 @@ router.get('/analytics', (req, res) => {
                 object-fit: contain;
             }
 
-            /* Filter styling */
             .search-label {
                 margin-bottom: 0.35rem;
                 font-size: 0.9rem;
@@ -157,6 +164,20 @@ router.get('/analytics', (req, res) => {
                 gap: 0.5rem;
             }
 
+            /* Ensure the custom range control doesn't overlap other filters.
+               Hidden by default (only when it does NOT have the visible class);
+               when visible it spans the full filters grid. */
+            .filter-group#custom-range-group:not(.visible-custom) {
+              display: none;
+            }
+
+            .filter-group.visible-custom {
+              display: flex;
+              grid-column: 1 / -1;
+              align-self: start;
+              margin-top: 0.25rem;
+            }
+
             .filter-actions {
                 display: flex;
                 gap: 0.5rem;
@@ -164,7 +185,6 @@ router.get('/analytics', (req, res) => {
                 justify-content: flex-start;
             }
 
-            /* Graph container */
             #list-wrapper {
                 width: 100%;
                 max-width: 900px;
@@ -174,7 +194,6 @@ router.get('/analytics', (req, res) => {
                 gap: 2rem;
             }
             
-            /* Loading state */
             .loading {
                 display: flex;
                 justify-content: center;
@@ -184,7 +203,6 @@ router.get('/analytics', (req, res) => {
                 font-size: 1.1rem;
             }
             
-            /* Empty state */
             .empty-state {
                 text-align: center;
                 padding: 4rem 2rem;
@@ -196,7 +214,6 @@ router.get('/analytics', (req, res) => {
                 margin-bottom: 0.5rem;
             }
 
-            /* Canvas styling with preserved aspect ratio */
             canvas {
                 width: 100%;
                 aspect-ratio: 16 / 9;
@@ -242,7 +259,6 @@ router.get('/analytics', (req, res) => {
                 transform: translateY(-2px) scale(1.04);
             }
 
-              /* Mobile responsiveness */
               @media (max-width: 600px) {
                   canvas {
                       aspect-ratio: 4 / 3;
@@ -297,7 +313,6 @@ router.get('/analytics', (req, res) => {
                   box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
               }
 
-              /* Mobile responsiveness */
               @media (max-width: 600px) {
                   canvas {
                       aspect-ratio: 4 / 3;
@@ -344,21 +359,21 @@ router.get('/analytics', (req, res) => {
                   <div class="filter-group">
                     <label for="timeframe-select" class="search-label">Timeframe</label>
                     <select id="timeframe-select" class="select-input">
-                      <option value="900000">Last 15 minutes</option>
-                      <option value="1800000">Last 30 minutes</option>
-                      <option value="3600000" selected>Last 1 hour</option>
-                      <option value="21600000">Last 6 hours</option>
-                      <option value="86400000">Last 24 hours</option>
-                      <option value="604800000">Last 7 days</option>
-                      <option value="custom">Custom range</option>
+                      <option value="900000" ${timeframe === '900000' ? 'selected' : ''}>Last 15 minutes</option>
+                      <option value="1800000" ${timeframe === '1800000' ? 'selected' : ''}>Last 30 minutes</option>
+                      <option value="3600000" ${timeframe === '3600000' ? 'selected' : ''}>Last 1 hour</option>
+                      <option value="21600000" ${timeframe === '21600000' ? 'selected' : ''}>Last 6 hours</option>
+                      <option value="86400000" ${timeframe === '86400000' ? 'selected' : ''}>Last 24 hours</option>
+                      <option value="604800000" ${timeframe === '604800000' ? 'selected' : ''}>Last 7 days</option>
+                      <option value="custom" ${isCustomRange ? 'selected' : ''}>Custom range</option>
                     </select>
                   </div>
 
-                  <div class="filter-group" id="custom-range-group" style="display:none;">
+                  <div class="filter-group${isCustomRange ? ' visible-custom' : ''}" id="custom-range-group">
                     <label class="search-label">Custom range</label>
                     <div class="custom-range">
-                      <input id="start-datetime" type="datetime-local" class="text-input" />
-                      <input id="end-datetime" type="datetime-local" class="text-input" />
+                      <input id="start-datetime" type="datetime-local" class="text-input" value="${start ? new Date(start).toISOString().slice(0, 16) : ''}" />
+                      <input id="end-datetime" type="datetime-local" class="text-input" value="${end ? new Date(end).toISOString().slice(0, 16) : ''}" />
                     </div>
                   </div>
 
@@ -388,7 +403,9 @@ router.get('/analytics', (req, res) => {
           </div>
         </div>
         <script>
-          // Get DOM elements
+          const INITIAL_TYPE = '${type}';
+          const INITIAL_USER = '${userEmail}';
+          
           const timeframeSelect = document.getElementById('timeframe-select');
           const customRangeGroup = document.getElementById('custom-range-group');
           const startInput = document.getElementById('start-datetime');
@@ -398,16 +415,16 @@ router.get('/analytics', (req, res) => {
           const applyButton = document.getElementById('apply-filters');
           const resetButton = document.getElementById('reset-filters');
 
-          // Toggle custom range visibility
           function toggleCustomRange() {
-            customRangeGroup.style.display = timeframeSelect.value === 'custom' ? 'block' : 'none';
+            const show = timeframeSelect.value === 'custom';
+            customRangeGroup.classList.toggle('visible-custom', show);
           }
 
           timeframeSelect.addEventListener('change', toggleCustomRange);
+          // Ensure initial visibility matches the selected timeframe on page load
+          toggleCustomRange();
 
-          // Populate select dropdown with options
-          function populateSelect(selectEl, options, placeholder = '') {
-            // Clear existing options except the first one (placeholder)
+          function populateSelect(selectEl, options, initialValue = '') {
             while (selectEl.options.length > 1) {
               selectEl.remove(1);
             }
@@ -416,11 +433,13 @@ router.get('/analytics', (req, res) => {
               const option = document.createElement('option');
               option.value = optionValue;
               option.textContent = optionValue;
+              if (optionValue === initialValue) {
+                option.selected = true;
+              }
               selectEl.appendChild(option);
             });
           }
 
-          // Fetch available filter options from backend
           async function fetchFilterOptions() {
             try {
               const response = await fetch('/user/sensor-data/filters', { method: 'GET' });
@@ -429,18 +448,16 @@ router.get('/analytics', (req, res) => {
                 return;
               }
               const { types = [], users = [] } = await response.json();
-              populateSelect(typeSelect, types);
-              populateSelect(userSelect, users);
+              populateSelect(typeSelect, types, INITIAL_TYPE);
+              populateSelect(userSelect, users, INITIAL_USER);
             } catch (error) {
               console.error('Error loading filter options:', error);
             }
           }
 
-          // Build query parameters from filter selections
           function buildFilterParams() {
             const params = new URLSearchParams();
 
-            // Handle timeframe
             if (timeframeSelect.value === 'custom') {
               const startValue = startInput.value;
               const endValue = endInput.value;
@@ -456,12 +473,10 @@ router.get('/analytics', (req, res) => {
               params.append('timeframe', timeframeSelect.value);
             }
 
-            // Add type filter if selected
             if (typeSelect.value) {
               params.append('type', typeSelect.value);
             }
 
-            // Add user filter if selected
             if (userSelect.value) {
               params.append('userEmail', userSelect.value);
             }
@@ -469,7 +484,23 @@ router.get('/analytics', (req, res) => {
             return params.toString();
           }
 
-          // Fetch analytics data with current filters
+          function updateURL() {
+            const params = new URLSearchParams();
+            
+            if (timeframeSelect.value === 'custom') {
+              if (startInput.value) params.append('start', new Date(startInput.value).toISOString());
+              if (endInput.value) params.append('end', new Date(endInput.value).toISOString());
+            } else {
+              params.append('timeframe', timeframeSelect.value);
+            }
+            
+            if (typeSelect.value) params.append('type', typeSelect.value);
+            if (userSelect.value) params.append('userEmail', userSelect.value);
+            
+            const newURL = window.location.pathname + '?' + params.toString();
+            window.history.replaceState({}, '', newURL);
+          }
+
           async function fetch_analytics() {   
             try {
               const query = buildFilterParams();
@@ -492,13 +523,11 @@ router.get('/analytics', (req, res) => {
           function render_analytics(analytics) {
             const canvasContainer = document.getElementById("list-wrapper");
 
-            // Y-axis display range
             type_range = {
               "humidity": [0, 80],
               "temperature": [32, 122]
             }
 
-            // Nominal range (acceptable operating range)
             nominal_range = {
               "humidity": [10, 20],
               "temperature": [65, 75]
@@ -507,16 +536,14 @@ router.get('/analytics', (req, res) => {
             for (let user in analytics) {
               let user_analytics = analytics[user];
               const split_ref = user.split(" ");
-              const range = type_range[split_ref[1]]  // Y-axis range
+              const range = type_range[split_ref[1]]
               const nominalMin = nominal_range[split_ref[1]][0];
               const nominalMax = nominal_range[split_ref[1]][1];
 
-              // Separate data points into below nominal min, normal, and above nominal max
               const dataBelowNominal = [];
               const dataNormal = [];
               const dataAboveNominal = [];
 
-              // Get time range for threshold lines
               let minTime = null;
               let maxTime = null;
 
@@ -533,7 +560,6 @@ router.get('/analytics', (req, res) => {
                 }
               });
 
-              // Create threshold line data points for nominal range
               const minThresholdLine = minTime && maxTime ? [
                 { x: minTime, y: nominalMin },
                 { x: maxTime, y: nominalMin }
@@ -569,10 +595,9 @@ router.get('/analytics', (req, res) => {
                 type: 'line',
                 data: {
                   datasets: [
-                    // Below nominal min - blue
                     {
                       data: dataBelowNominal,
-                      borderColor: 'rgba(100, 149, 237, 1)', // Cornflower blue
+                      borderColor: 'rgba(100, 149, 237, 1)',
                       backgroundColor: 'rgba(100, 149, 237, 0.1)',
                       borderWidth: 2,
                       pointRadius: 4,
@@ -586,7 +611,6 @@ router.get('/analytics', (req, res) => {
                       fill: false,
                       tension: 0.1
                     },
-                    // Normal range - teal
                     {
                       data: dataNormal,
                       borderColor: 'rgba(75, 192, 192, 1)',
@@ -603,10 +627,9 @@ router.get('/analytics', (req, res) => {
                       fill: false,
                       tension: 0.1
                     },
-                    // Above nominal max - red
                     {
                       data: dataAboveNominal,
-                      borderColor: 'rgba(255, 99, 132, 1)', // Red
+                      borderColor: 'rgba(255, 99, 132, 1)',
                       backgroundColor: 'rgba(255, 99, 132, 0.1)',
                       borderWidth: 2,
                       pointRadius: 4,
@@ -620,7 +643,6 @@ router.get('/analytics', (req, res) => {
                       fill: false,
                       tension: 0.1
                     },
-                    // Min nominal threshold line
                     {
                       data: minThresholdLine,
                       borderColor: 'rgba(100, 149, 237, 0.6)',
@@ -632,7 +654,6 @@ router.get('/analytics', (req, res) => {
                       tension: 0,
                       order: -1
                     },
-                    // Max nominal threshold line
                     {
                       data: maxThresholdLine,
                       borderColor: 'rgba(255, 99, 132, 0.6)',
@@ -728,13 +749,11 @@ router.get('/analytics', (req, res) => {
             }
           }
 
-          // Show loading state
           function showLoading() {
             const wrapper = document.getElementById('list-wrapper');
             wrapper.innerHTML = '<div class="loading">Loading analytics</div>';
           }
           
-          // Show empty state
           function showEmptyState() {
             const wrapper = document.getElementById('list-wrapper');
             wrapper.innerHTML = \`
@@ -745,15 +764,14 @@ router.get('/analytics', (req, res) => {
             \`;
           }
 
-          // Apply filters and refresh analytics
           async function applyFilters() {
             const wrapper = document.getElementById('list-wrapper');
             const applyBtn = document.getElementById('apply-filters');
             
-            // Show loading state
             showLoading();
             
-            // Disable button during loading
+            updateURL();
+            
             applyBtn.disabled = true;
             applyBtn.style.opacity = '0.6';
             applyBtn.style.cursor = 'not-allowed';
@@ -761,10 +779,8 @@ router.get('/analytics', (req, res) => {
             try {
               const analytics = await fetch_analytics();
               
-              // Clear wrapper
               wrapper.innerHTML = '';
               
-              // Check if we have data
               if (Object.keys(analytics).length === 0) {
                 showEmptyState();
               } else {
@@ -778,42 +794,27 @@ router.get('/analytics', (req, res) => {
                 </div>
               \`;
             } finally {
-              // Re-enable button
               applyBtn.disabled = false;
               applyBtn.style.opacity = '1';
               applyBtn.style.cursor = 'pointer';
             }
           }
 
-          // Reset filters to default values
           function resetFilters() {
-            timeframeSelect.value = '3600000'; // Default to 1 hour
-            typeSelect.value = '';
-            userSelect.value = '';
-            startInput.value = '';
-            endInput.value = '';
-            toggleCustomRange();
-            applyFilters();
+            window.location.href = window.location.pathname;
           }
 
-          // Set up event listeners
           applyButton.addEventListener('click', applyFilters);
           resetButton.addEventListener('click', resetFilters);
 
-          // Initialize on page load
           (async () => {
-            // Load filter options first
             await fetchFilterOptions();
-            
-            // Load initial data with default filters
             await applyFilters();
           })();
         </script>
         <script>
           window.addEventListener("load", () => {
               const app = document.getElementById("app");
-
-              // Unblur & fade in the page
               app.style.filter = "blur(0px)";
               app.style.opacity = "1";
           });
@@ -834,6 +835,359 @@ router.get('/analytics', (req, res) => {
     </body>
     </html>`);
 });
+
+router.get('/user-search', (req, res) => {
+  res.send(`<!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+        <title>Analytics - Archeology Sentry</title>
+        <style>
+            :root {
+                --bg: #111;
+                --fg: #fff;
+                --accent: #4ecdc4;
+                --muted: #bfbfbf;
+                --error: #ff4444;
+            }
+
+            html, body {
+                height: 100%;
+                margin: 0;
+                background: var(--bg);
+                color: var(--fg);
+                font-family: 'Inter', system-ui, Arial, sans-serif;
+            }
+
+            *, *::before, *::after { box-sizing: border-box; }
+
+            #app {
+                filter: blur(15px);
+                opacity: 0;
+                transition: filter 0.8s ease, opacity 0.8s ease;
+            }
+
+           #app-bg {
+              min-height: 100vh;
+              position: relative;
+              
+              background-image: url('/images/login-img.jpg');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              background-attachment: fixed;
+          }
+
+          .page-wrapper {
+              min-height: 100vh;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              padding: 2rem 1rem;
+              padding-top: 6rem;
+              position: relative;
+          }
+
+          #app-bg::before {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);
+              z-index: 0;
+          }
+
+            .navbar {
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 20px 5vw;
+                background: none;
+                position: fixed;
+                top: 0; left: 0;
+                z-index: 100;
+            }
+            .navbar .logo {
+                width: 54px; 
+                height: 54px; 
+                border-radius: 12px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                overflow: hidden;
+            }
+            .navbar .logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+            /* Search bar styling */
+            .search-panel {
+                width: 100%;
+                max-width: 1100px;
+                margin-top: 0;
+                padding: 1.5rem 2rem;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(78,205,196,0.2);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+            }
+
+            .search-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .search-label {
+                font-size: 1rem;
+                color: var(--accent);
+                letter-spacing: 0.5px;
+                font-weight: 500;
+            }
+
+            .search-input {
+                width: 100%;
+                height: 50px;
+                padding: 12px 18px;
+                border-radius: 10px;
+                border: 2px solid rgba(78,205,196,0.6);
+                color: var(--fg);
+                background-color: rgba(255,255,255,0.06);
+                font-size: 16px;
+                outline: none;
+                transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .search-input:focus {
+                border-color: var(--accent);
+                background-color: rgba(78,205,196,0.1);
+                box-shadow: 0 0 0 3px rgba(78,205,196,0.2);
+            }
+
+            .search-input::placeholder {
+                color: var(--muted);
+                opacity: 0.6;
+            }
+
+            /* User list */
+            #list-wrapper {
+                width: 100%;
+                max-width: 1100px;
+                margin-top: 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            /* Loading state */
+            .loading {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 3rem;
+                color: var(--accent);
+                font-size: 1.1rem;
+            }
+            
+            /* Empty state */
+            .empty-state {
+                text-align: center;
+                padding: 4rem 2rem;
+                color: var(--muted);
+            }
+            
+            .empty-state h3 {
+                color: var(--accent);
+                margin-bottom: 0.5rem;
+            }
+
+            .navbar .cta {
+                background: var(--accent);
+                color: #111;
+                border: none;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                font-weight: 700;
+                padding: 12px 32px;
+                cursor: pointer;
+                box-shadow: 0 2px 12px rgba(78,205,196,0.08);
+                transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+            }
+            .navbar .cta:hover, .navbar .cta:focus {
+                background: #7be3db;
+                color: #111;
+                box-shadow: 0 4px 24px var(--accent);
+                transform: translateY(-2px) scale(1.04);
+            }
+
+            .user-wrapper {
+                background: rgba(255, 255, 255, 0.05);
+                color: var(--fg);
+                border: 1px solid rgba(78,205,196,0.3);
+                border-radius: 10px;
+                font-size: 1rem;
+                font-weight: 500;
+                padding: 18px 24px;
+                cursor: pointer;
+                transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+                letter-spacing: 0.3px;
+            }
+
+            .user-wrapper:hover {
+                background: rgba(78,205,196,0.1);
+                border-color: var(--accent);
+                box-shadow: 0 4px 16px rgba(78,205,196,0.3);
+                transform: translateY(-2px);
+            }
+
+            .user-wrapper.hidden {
+                display: none;
+            }
+
+            /* Mobile responsiveness */
+            @media (max-width: 600px) {
+                .navbar {
+                    padding: 16px 4vw;
+                }
+                .navbar .cta {
+                    font-size: 0.95rem;
+                    padding: 10px 20px;
+                }
+                .page-wrapper {
+                    padding-top: 5.5rem;
+                    padding-left: 0.75rem;
+                    padding-right: 0.75rem;
+                }
+                .search-panel {
+                    padding: 1.25rem 1.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+          <div id="app-bg">
+            <nav class="navbar">
+                <a href="/" class="logo">
+                    <img src="/icon/logo.png" alt="Archeology Sentry" />
+                </a>
+                <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
+            </nav>
+            <div class="page-wrapper">
+              <div class="search-panel">
+                <div class="search-wrapper">
+                  <label for="user-search" class="search-label">Search Users</label>
+                  <input 
+                    id="user-search" 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Type to search by email or name..."
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+
+              <div id="list-wrapper">
+                <div class="loading">Loading users...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <script>
+          const list_wrapper = document.getElementById("list-wrapper");
+          const search_input = document.getElementById("user-search");
+          let allUsers = [];
+
+          async function fetch_users() {
+            try {
+              list_wrapper.innerHTML = '<div class="loading">Loading users...</div>';
+              
+              const response = await fetch('/user/get-users');
+              if (!response.ok) throw new Error('Failed to fetch users');
+              
+              const users = await response.json();
+              allUsers = users;
+              
+              render_users(users);
+              
+            } catch (error) {
+              console.error('Error fetching users:', error);
+              list_wrapper.innerHTML = '<div class="empty-state"><h3>Error</h3><p>Failed to load users. Please try again.</p></div>';
+            }
+          }
+
+          function render_users(users) {
+            list_wrapper.innerHTML = '';
+            
+            if (users.length === 0) {
+              list_wrapper.innerHTML = '<div class="empty-state"><h3>No users found</h3><p>Try a different search term.</p></div>';
+              return;
+            }
+            
+            users.forEach(user => {
+              const userElement = document.createElement('div');
+              userElement.className = "user-wrapper";
+              userElement.textContent = user.email;
+              userElement.dataset.email = user.email.toLowerCase();
+              userElement.dataset.name = (user.name || '').toLowerCase();
+              
+              userElement.addEventListener("click", async () => {
+                const params = new URLSearchParams({
+                  userEmail: user.email
+                });
+                
+                window.location.href = \`/user/analytics?\${params.toString()}\`;
+              });
+              
+              list_wrapper.appendChild(userElement);
+            });
+          }
+
+          function filter_users(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            
+            if (term === '') {
+              // Show all users if search is empty
+              render_users(allUsers);
+              return;
+            }
+            
+            // Filter users based on search term
+            const filtered = allUsers.filter(user => {
+              const email = (user.email || '').toLowerCase();
+              const name = (user.name || '').toLowerCase();
+              return email.includes(term) || name.includes(term);
+            });
+            
+            render_users(filtered);
+          }
+
+          // Add event listener for search input
+          search_input.addEventListener('input', (e) => {
+            filter_users(e.target.value);
+          });
+
+          // Initial fetch
+          fetch_users();
+        </script>
+        <script>
+          window.addEventListener("load", () => {
+              const app = document.getElementById("app");
+              app.style.filter = "blur(0px)";
+              app.style.opacity = "1";
+          });
+        </script>
+    </body>
+    </html>`);
+})
 
 router.post('/sensor-data', async (req, res) => {
     try {
@@ -1025,6 +1379,17 @@ router.delete('/cls-data', async (req, res) => {
     return res.status(200).json({ msg: 'Successfully Cleared Data' } )
   } catch (error) {
     logger.error('Error clearing sensor data:', error);
+    return res.status(500).json ({ err: 'Internal server error' })
+  }
+})
+
+router.get('/get-users', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+
+    return res.status(200).json(users)
+  } catch {
+    logger.error('Error retrieving data:', error);
     return res.status(500).json ({ err: 'Internal server error' })
   }
 })
