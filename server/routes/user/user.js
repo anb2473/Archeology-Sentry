@@ -104,6 +104,46 @@ router.get('/analytics', (req, res) => {
                 object-fit: contain;
             }
 
+            /* Right-aligned actions container for navbar */
+            .nav-actions {
+              margin-left: auto;
+              display: flex;
+              gap: 1rem;
+              align-items: center;
+            }
+
+            /* Simple link-style button used alongside the primary CTA */
+            .nav-link {
+              color: #fff;
+              background: transparent;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+              text-decoration: none;
+              position: relative;
+              outline: none;
+            }
+
+            .nav-link::after {
+              content: '';
+              position: absolute;
+              left: 0;
+              right: 0;
+              bottom: -2px;
+              height: 2px;
+              background: transparent;
+              transition: background 180ms ease;
+            }
+
+            .nav-link:hover::after,
+            .nav-link:focus::after {
+              background: var(--accent);
+            }
+
+            .nav-link:focus { outline: none; }
+
             .search-label {
                 margin-bottom: 0.35rem;
                 font-size: 0.9rem;
@@ -348,10 +388,13 @@ router.get('/analytics', (req, res) => {
         <div id="app">
           <div id="app-bg">
             <nav class="navbar">
-                <a href="/" class="logo">
-                    <img src="/icon/logo.png" alt="Archeology Sentry" />
-                </a>
+              <a href="/" class="logo">
+                <img src="/icon/logo.png" alt="Archeology Sentry" />
+              </a>
+              <div class="nav-actions">
+                <button class="nav-link" onclick="window.location.href='/user/user-search'">Users</button>
                 <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
+              </div>
             </nav>
             <div class="page-wrapper">
               <div class="filter-panel">
@@ -928,6 +971,46 @@ router.get('/user-search', (req, res) => {
                 object-fit: contain;
             }
 
+            /* Right-aligned actions container for navbar */
+            .nav-actions {
+              margin-left: auto;
+              display: flex;
+              gap: 1rem;
+              align-items: center;
+            }
+
+            /* Simple link-style button used alongside the primary CTA */
+            .nav-link {
+              color: #fff;
+              background: transparent;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+              text-decoration: none;
+              position: relative;
+              outline: none;
+            }
+
+            .nav-link::after {
+              content: '';
+              position: absolute;
+              left: 0;
+              right: 0;
+              bottom: -2px;
+              height: 2px;
+              background: transparent;
+              transition: background 180ms ease;
+            }
+
+            .nav-link:hover::after,
+            .nav-link:focus::after {
+              background: var(--accent);
+            }
+
+            .nav-link:focus { outline: none; }
+
             /* Search bar styling */
             .search-panel {
                 width: 100%;
@@ -1076,10 +1159,13 @@ router.get('/user-search', (req, res) => {
         <div id="app">
           <div id="app-bg">
             <nav class="navbar">
-                <a href="/" class="logo">
-                    <img src="/icon/logo.png" alt="Archeology Sentry" />
-                </a>
+              <a href="/" class="logo">
+                <img src="/icon/logo.png" alt="Archeology Sentry" />
+              </a>
+              <div class="nav-actions">
+                <button class="nav-link" onclick="window.location.href='/user/analytics'">Analytics</button>
                 <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
+              </div>
             </nav>
             <div class="page-wrapper">
               <div class="search-panel">
