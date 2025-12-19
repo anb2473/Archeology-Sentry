@@ -568,12 +568,14 @@ router.get('/analytics', (req, res) => {
 
             type_range = {
               "humidity": [0, 80],
-              "temperature": [32, 122]
+              "temperature": [32, 122],
+              "motion": [0, 1]
             }
 
             nominal_range = {
               "humidity": [10, 20],
-              "temperature": [65, 75]
+              "temperature": [65, 75],
+              "motion": [0, 0.5]
             }
 
             for (let user in analytics) {

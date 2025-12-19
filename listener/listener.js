@@ -80,6 +80,11 @@ startSerialReader(async (data) => {
             console.log(`Humidity: ${humidity}%`);
             sendPostReq('user/sensor-data', { type: 'humidity', value: humidity });
             break;
+        case 'M':
+            const motion = parseInt(data.slice(1))
+            console.log(`Motion: ${motion}`);
+            sendPostReq('user/sensor-data', { type: 'motion', value: motion });
+            break;
         case 'I':
             console.log(`Info: ${data.slice(1)}`);
             break;
