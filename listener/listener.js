@@ -16,6 +16,7 @@ async function getAuthToken() {
     try {
         const credentials = Buffer.from(`${email}:${passw}`).toString('base64');
 
+    console.log(`${SERVER_URL}/auth/login`)
     const response = await fetch(`${SERVER_URL}/auth/login`, {
             method: 'POST',
             headers: {
@@ -28,7 +29,7 @@ async function getAuthToken() {
 
         if (!response.ok) {
             const err = await response.json();
-            console.error('Login failed:', err);
+            console.error('Login failed:', err, response);
             return null;
         }
 

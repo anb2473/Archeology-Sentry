@@ -21,7 +21,7 @@ router.get('/analytics', (req, res) => {
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
-        <title>Analytics - Archeology Sentry</title>
+        <title>Archeology Sentry</title>
         <style>
             :root {
                 --bg: #111;
@@ -124,6 +124,7 @@ router.get('/analytics', (req, res) => {
               text-decoration: none;
               position: relative;
               outline: none;
+              font-size: 1.1rem;
             }
 
             .nav-link::after {
@@ -155,24 +156,87 @@ router.get('/analytics', (req, res) => {
                 width: 100%;
                 max-width: 1100px;
                 margin-top: 0;
-                padding: 1.25rem 1.5rem;
+                padding: 0;
                 border-radius: 12px;
-                background: rgba(255, 255, 255, 0.04);
-                border: 1px solid rgba(78,205,196,0.2);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(78,205,196,0.25);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+                overflow: hidden;
             }
 
             .filters-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 1rem;
-                align-items: end;
+                display: flex;
+                flex-direction: column;
+                gap: 0;
             }
 
             .filter-group {
+                border-bottom: 1px solid rgba(78,205,196,0.1);
+            }
+
+            .filter-group:last-child {
+                border-bottom: none;
+            }
+
+            .filter-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1.125rem 1.5rem;
+                cursor: pointer;
+                user-select: none;
+                transition: all 0.2s ease;
+                background-color: transparent;
+            }
+
+            .filter-header:hover {
+                background-color: rgba(78, 205, 196, 0.08);
+            }
+
+            .filter-group.expanded .filter-header {
+                background-color: rgba(78, 205, 196, 0.1);
+                border-bottom: 1px solid rgba(78, 205, 196, 0.2);
+            }
+
+            .filter-header-title {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: var(--accent);
+                letter-spacing: 0.3px;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .filter-header-icon {
+                color: var(--accent);
+                font-size: 0.85rem;
+                transition: transform 0.3s ease;
+                margin-left: auto;
+            }
+
+            .filter-group.expanded .filter-header-icon {
+                transform: rotate(180deg);
+            }
+
+            .filter-content {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease, padding 0.3s ease;
+                padding: 0 1.5rem;
+                background-color: rgba(0, 0, 0, 0.15);
+            }
+
+            .filter-group.expanded .filter-content {
+                max-height: 200px;
+                padding: 0 1.5rem 1.25rem 1.5rem;
+            }
+
+            .filter-inner {
                 display: flex;
                 flex-direction: column;
-                gap: 0.35rem;
+                gap: 0.5rem;
+                padding-top: 0.75rem;
             }
 
             .select-input, .text-input {
@@ -204,25 +268,15 @@ router.get('/analytics', (req, res) => {
                 gap: 0.5rem;
             }
 
-            /* Ensure the custom range control doesn't overlap other filters.
-               Hidden by default (only when it does NOT have the visible class);
-               when visible it spans the full filters grid. */
-            .filter-group#custom-range-group:not(.visible-custom) {
-              display: none;
-            }
-
-            .filter-group.visible-custom {
-              display: flex;
-              grid-column: 1 / -1;
-              align-self: start;
-              margin-top: 0.25rem;
-            }
 
             .filter-actions {
                 display: flex;
-                gap: 0.5rem;
+                gap: 0.75rem;
                 align-items: center;
-                justify-content: flex-start;
+                justify-content: center;
+                padding: 1.5rem 1.5rem;
+                background: rgba(0, 0, 0, 0.25);
+                border-top: 1px solid rgba(78,205,196,0.15);
             }
 
             #list-wrapper {
@@ -369,18 +423,25 @@ router.get('/analytics', (req, res) => {
                       padding-left: 0.75rem;
                       padding-right: 0.75rem;
                   }
-                  .filter-panel {
-                      padding: 1rem 1.25rem;
-                  }
-                  .filter-actions {
-                      justify-content: center;
-                      width: 100%;
-                  }
-                  .filter-actions .cta,
-                  .filter-actions .cls-button {
-                      flex: 1;
-                      max-width: 150px;
-                  }
+            .filter-panel {
+                padding: 0;
+            }
+            .filter-header {
+                padding: 0.875rem 1.25rem;
+            }
+            .filter-group.expanded .filter-content {
+                padding: 0 1.25rem 1rem 1.25rem;
+            }
+            .filter-actions {
+                padding: 1rem 1.25rem;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .filter-actions .cta,
+            .filter-actions .cls-button {
+                width: 100%;
+                max-width: none;
+            }
               }
         </style>
     </head>
@@ -399,43 +460,71 @@ router.get('/analytics', (req, res) => {
             <div class="page-wrapper">
               <div class="filter-panel">
                 <div class="filters-grid">
-                  <div class="filter-group">
-                    <label for="timeframe-select" class="search-label">Timeframe</label>
-                    <select id="timeframe-select" class="select-input">
-                      <option value="900000" ${timeframe === '900000' ? 'selected' : ''}>Last 15 minutes</option>
-                      <option value="1800000" ${timeframe === '1800000' ? 'selected' : ''}>Last 30 minutes</option>
-                      <option value="3600000" ${timeframe === '3600000' ? 'selected' : ''}>Last 1 hour</option>
-                      <option value="21600000" ${timeframe === '21600000' ? 'selected' : ''}>Last 6 hours</option>
-                      <option value="86400000" ${timeframe === '86400000' ? 'selected' : ''}>Last 24 hours</option>
-                      <option value="604800000" ${timeframe === '604800000' ? 'selected' : ''}>Last 7 days</option>
-                      <option value="custom" ${isCustomRange ? 'selected' : ''}>Custom range</option>
-                    </select>
-                  </div>
-
-                  <div class="filter-group${isCustomRange ? ' visible-custom' : ''}" id="custom-range-group">
-                    <label class="search-label">Custom range</label>
-                    <div class="custom-range">
-                      <input id="start-datetime" type="datetime-local" class="text-input" value="${start ? new Date(start).toISOString().slice(0, 16) : ''}" />
-                      <input id="end-datetime" type="datetime-local" class="text-input" value="${end ? new Date(end).toISOString().slice(0, 16) : ''}" />
+                  <div class="filter-group" id="timeframe-group">
+                    <div class="filter-header" onclick="toggleFilter('timeframe-group')">
+                      <span class="filter-header-title">Timeframe</span>
+                      <span class="filter-header-icon">▼</span>
+                    </div>
+                    <div class="filter-content">
+                      <div class="filter-inner">
+                        <select id="timeframe-select" class="select-input">
+                          <option value="900000" ${timeframe === '900000' ? 'selected' : ''}>Last 15 minutes</option>
+                          <option value="1800000" ${timeframe === '1800000' ? 'selected' : ''}>Last 30 minutes</option>
+                          <option value="3600000" ${timeframe === '3600000' ? 'selected' : ''}>Last 1 hour</option>
+                          <option value="21600000" ${timeframe === '21600000' ? 'selected' : ''}>Last 6 hours</option>
+                          <option value="86400000" ${timeframe === '86400000' ? 'selected' : ''}>Last 24 hours</option>
+                          <option value="604800000" ${timeframe === '604800000' ? 'selected' : ''}>Last 7 days</option>
+                          <option value="custom" ${isCustomRange ? 'selected' : ''}>Custom range</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="filter-group">
-                    <label for="type-select" class="search-label">Data type</label>
-                    <select id="type-select" class="select-input">
-                      <option value="">All data types</option>
-                    </select>
+                  <div class="filter-group${isCustomRange ? ' expanded' : ''}" id="custom-range-group">
+                    <div class="filter-header" onclick="toggleFilter('custom-range-group')">
+                      <span class="filter-header-title">Custom Date Range</span>
+                      <span class="filter-header-icon">▼</span>
+                    </div>
+                    <div class="filter-content">
+                      <div class="filter-inner">
+                        <div class="custom-range">
+                          <input id="start-datetime" type="datetime-local" class="text-input" value="${start ? new Date(start).toISOString().slice(0, 16) : ''}" />
+                          <input id="end-datetime" type="datetime-local" class="text-input" value="${end ? new Date(end).toISOString().slice(0, 16) : ''}" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div class="filter-group">
-                    <label for="user-select" class="search-label">User</label>
-                    <select id="user-select" class="select-input">
-                      <option value="">All users</option>
-                    </select>
+                  <div class="filter-group" id="type-group">
+                    <div class="filter-header" onclick="toggleFilter('type-group')">
+                      <span class="filter-header-title">Data Type</span>
+                      <span class="filter-header-icon">▼</span>
+                    </div>
+                    <div class="filter-content">
+                      <div class="filter-inner">
+                        <select id="type-select" class="select-input">
+                          <option value="">All data types</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="filter-group" id="user-group">
+                    <div class="filter-header" onclick="toggleFilter('user-group')">
+                      <span class="filter-header-title">User</span>
+                      <span class="filter-header-icon">▼</span>
+                    </div>
+                    <div class="filter-content">
+                      <div class="filter-inner">
+                        <select id="user-select" class="select-input">
+                          <option value="">All users</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="filter-actions">
-                    <button id="apply-filters" class="cta" type="button">Apply</button>
+                    <button id="apply-filters" class="cta" type="button">Apply Filters</button>
                     <button id="reset-filters" class="cls-button" type="button">Reset</button>
                   </div>
                 </div>
@@ -458,9 +547,16 @@ router.get('/analytics', (req, res) => {
           const applyButton = document.getElementById('apply-filters');
           const resetButton = document.getElementById('reset-filters');
 
+          window.toggleFilter = function(groupId) {
+            const group = document.getElementById(groupId);
+            group.classList.toggle('expanded');
+          };
+
           function toggleCustomRange() {
             const show = timeframeSelect.value === 'custom';
-            customRangeGroup.classList.toggle('visible-custom', show);
+            if (show) {
+              customRangeGroup.classList.add('expanded');
+            }
           }
 
           timeframeSelect.addEventListener('change', toggleCustomRange);
@@ -890,7 +986,7 @@ router.get('/user-search', (req, res) => {
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
-        <title>Analytics - Archeology Sentry</title>
+        <title>Archeology Sentry</title>
         <style>
             :root {
                 --bg: #111;
@@ -1277,6 +1373,48 @@ router.get('/user-search', (req, res) => {
     </html>`);
 })
 
+router.get('/sensor-map', (req, res) => {
+  return `
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+        <title>Archeology Sentry</title>
+        <style>
+          .grid-container {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            grid-template-rows: repeat(20, 1fr);
+            width: 500px;
+            height: 500px;
+            border: 2px solid black;
+            position: relative;
+          }
+
+          .point {
+            width: 10px;
+            height: 10px;
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+          }
+        </style>
+    </head>
+    <body>
+      <div class="grid-container">
+        <div class="point"></div>
+      </div>
+    </body>
+    <html>
+  
+  `
+})
+
 router.post('/sensor-data', async (req, res) => {
     try {
         const { type, value } = req.body;
@@ -1311,6 +1449,15 @@ router.post('/sensor-data', async (req, res) => {
         return res.status(500).json({ err: 'Internal server error' });
     }
 });
+
+router.get('/user-risk', async (req, res) => {
+  try {
+    const datapoints = prisma.DataPoint.findMany()
+  } catch (error) {
+        logger.error('Error retrieving user risk data:', error);
+        return res.status(500).json({ err: 'Internal server error' });
+    }
+})
 
 router.get('/sensor-data/filters', async (req, res) => {
   try {
