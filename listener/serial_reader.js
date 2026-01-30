@@ -1,5 +1,8 @@
 import { SerialPort } from "serialport";
 import { ReadlineParser } from "@serialport/parser-readline";
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 const ARDUINO_PORT = process.env.ARDUINO_PORT || "COM3";
 const BAUD_RATE = 9600;

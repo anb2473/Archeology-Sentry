@@ -1,8 +1,9 @@
-import startSerialReader from './serial_reader.js';
 import dotenv from 'dotenv'
 import fetch from 'node-fetch';
 
 dotenv.config();
+
+import startSerialReader from './serial_reader.js';
 
 // Use SERVER_URL env var so we can switch between http/https in different environments.
 // Default to HTTP localhost because the server is commonly run without TLS in dev.
@@ -49,7 +50,7 @@ async function getAuthToken() {
 
 async function sendPostReq(endpoint, postData) {
     try {
-    const response = await fetch(`${SERVER_URL}/${endpoint}`, {
+        const response = await fetch(`${SERVER_URL}/${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

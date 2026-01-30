@@ -1158,6 +1158,32 @@ router.get('/user-search', (req, res) => {
                 opacity: 0.6;
             }
 
+            .delete-button {
+              width: auto;
+              height: auto;
+              padding: 8px 16px;
+              margin-left: auto;
+              border-radius: 8px;
+              border: 2px solid rgba(255, 68, 68, 0.5);
+              color: #ff4444;
+              background-color: rgba(255, 68, 68, 0.1);
+              font-size: 1.2rem;
+              outline: none;
+              cursor: pointer;
+              transition: all 0.2s ease;
+            }
+
+            .delete-button:hover {
+              border-color: #ff4444;
+              background-color: rgba(255, 68, 68, 0.2);
+              box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.2);
+              transform: scale(1.1);
+            }
+
+            .delete-button:active {
+              transform: scale(0.95);
+            }
+
             /* User list */
             #list-wrapper {
                 width: 100%;
@@ -1220,7 +1246,10 @@ router.get('/user-search', (req, res) => {
                 cursor: pointer;
                 transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
                 letter-spacing: 0.3px;
-            }
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+              }
 
             .user-wrapper:hover {
                 background: rgba(78,205,196,0.1);
@@ -1308,7 +1337,48 @@ router.get('/user-search', (req, res) => {
             }
           }
 
-          function render_users(users) {
+          async function deleteUser() {
+            try {
+              const response = await fetch('/user/delete-user', {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+              
+              const data = await response.json();
+              
+              if (!response.ok) {
+                alert(data.err);
+                return false;
+              }
+              
+              // Refresh the user list after successful deletion
+              window.location.href = '/auth/login'
+              return true;
+            } catch (error) {
+              console.error('Error deleting user:', error);
+              alert('Failed to delete user. Please try again.');
+              return false;
+            }
+          }
+
+          async function getActiveId() {
+            try {
+              const response = await fetch('/user/active-id');
+              const data = await response.json();
+              if (!response.ok) {
+                alert(data.err);
+                return false;
+              }
+              return data.id;
+            } catch (error) {
+              console.error('Error getting active ID:', error);
+              return null;
+            }
+          }
+          
+          async function render_users(users) {
             list_wrapper.innerHTML = '';
             
             if (users.length === 0) {
@@ -1316,12 +1386,37 @@ router.get('/user-search', (req, res) => {
               return;
             }
             
+            // Get active ID asynchronously
+            const id = await getActiveId();
+            
             users.forEach(user => {
               const userElement = document.createElement('div');
               userElement.className = "user-wrapper";
-              userElement.textContent = user.email;
+              
+              const emailSpan = document.createElement('span');
+              emailSpan.textContent = user.email;
+              userElement.appendChild(emailSpan);
+              
               userElement.dataset.email = user.email.toLowerCase();
               userElement.dataset.name = (user.name || '').toLowerCase();
+
+              console.log(user.id, id)
+              
+              if (user.id === id) {
+                const deleteButton = document.createElement('button');
+                deleteButton.className = "delete-button";
+                deleteButton.textContent = "🗑️";
+                
+                deleteButton.addEventListener("click", async (e) => {
+                  e.stopPropagation();
+                  
+                  if (confirm(\`Are you sure you want to delete \${user.email}?\`)) {
+                    await deleteUser();
+                  }
+                });
+                
+                userElement.appendChild(deleteButton);
+              }
               
               userElement.addEventListener("click", async () => {
                 const params = new URLSearchParams({
@@ -1413,6 +1508,28 @@ router.get('/sensor-map', (req, res) => {
     <html>
   
   `
+})
+
+router.get('/active-id', async (req, res) => {
+  return res.status(200).json({ id: req.userID})
+})
+
+router.delete('/delete-user', async (req, res) => {
+  try {
+    const userId = req.userID;
+    await prisma.dataPoint.deleteMany({
+      where: { userId: userId }
+    });
+    await prisma.user.delete({
+      where: {
+        id: userId
+      }
+    })
+    return res.status(200).json({ msg: "Successfully deleted user" })
+  } catch (error) {
+    logger.error('Error deleting user:', error);
+    return res.status(500).json({ err: 'Internal server error' });
+  }
 })
 
 router.post('/sensor-data', async (req, res) => {
