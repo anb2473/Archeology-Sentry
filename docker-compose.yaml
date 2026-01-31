@@ -1,10 +1,18 @@
 version: '3'
 services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: sentry-cloudflared
+    command: tunnel --no-autoupdate --url http://server:3000
+    depends_on:
+      - server
+    restart: unless-stopped
+
   server:
     build: ./server
     container_name: sentry-server
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - sentry-db
     volumes:
@@ -25,7 +33,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=sentry
     ports:
-      - "5432:5432"
+      - "5431:5432"
     volumes:
       - sentry-db-data:/var/lib/postgresql/data
 
