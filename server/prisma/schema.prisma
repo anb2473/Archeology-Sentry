@@ -26,6 +26,7 @@ model User {
   dataPoints DataPoint[]
   x          Int?
   y          Int?
+  admin      Boolean @default(false)
 }
 
 model Boundary {

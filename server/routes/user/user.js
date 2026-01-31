@@ -1,6 +1,7 @@
 import express from 'express';
 import { prisma } from '../../prismaClient.js';
 import logger from '../../logger.js';
+import bcrypt from 'bcryptjs'
 
 const router = express.Router();
 
@@ -453,7 +454,7 @@ router.get('/analytics', (req, res) => {
                 <img src="/icon/logo.png" alt="Archeology Sentry" />
               </a>
               <div class="nav-actions">
-                <button class="nav-link" onclick="window.location.href='/user/user-search'">Users</button>
+                <button class="nav-link" onclick="window.location.href='/user/user-search'">Sensors</button>
                 <button class="nav-link" onclick="window.location.href='/user/sensor-map'">Map</button>
                 <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
               </div>
@@ -512,13 +513,13 @@ router.get('/analytics', (req, res) => {
 
                   <div class="filter-group" id="user-group">
                     <div class="filter-header" onclick="toggleFilter('user-group')">
-                      <span class="filter-header-title">User</span>
+                      <span class="filter-header-title">Sensor</span>
                       <span class="filter-header-icon">▼</span>
                     </div>
                     <div class="filter-content">
                       <div class="filter-inner">
                         <select id="user-select" class="select-input">
-                          <option value="">All users</option>
+                          <option value="">All Sensors</option>
                         </select>
                       </div>
                     </div>
@@ -948,7 +949,32 @@ router.get('/analytics', (req, res) => {
 
           applyButton.addEventListener('click', applyFilters);
           resetButton.addEventListener('click', resetFilters);
+async function checkAnalyticsPermissions() {
+  try {
+    const response = await fetch('/user/permissions');
+    const data = await response.json();
+    const hasPermissions = data.permissions === true;
 
+    const clearButtons = document.querySelectorAll('.cls-button');
+    
+    if (!hasPermissions) {
+      clearButtons.forEach(button => {
+        button.style.display = 'none';
+      });
+      
+      const filterPanel = document.querySelector('.filter-panel');
+      const message = document.createElement('div');
+      message.style.cssText = 'padding: 1.25rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(78, 205, 196, 0.3); border-radius: 12px; margin: 1.5rem 0; color: var(--accent); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);';
+      message.innerHTML = '<strong>Read-Only Mode:</strong> Graph clearing is disabled. Contact an administrator for permissions.';
+      
+      filterPanel.parentNode.insertBefore(message, filterPanel.nextSibling);
+    }
+  } catch (error) {
+    console.error('Error fetching permissions:', error);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', checkAnalyticsPermissions);
           (async () => {
             await fetchFilterOptions();
             await applyFilters();
@@ -1281,7 +1307,10 @@ router.get('/user-search', (req, res) => {
                 .search-panel {
                     padding: 1.25rem 1.5rem;
                 }
-            }
+                .tool-wrapper {
+                  display: none;
+                }
+              }
         </style>
     </head>
     <body>
@@ -2013,7 +2042,7 @@ router.get('/sensor-map', (req, res) => {
             </a>
             <div class="nav-actions">
               <button class="nav-link" onclick="window.location.href='/user/analytics'">Analytics</button>
-              <button class="nav-link" onclick="window.location.href='/user/user-search'">Users</button>
+              <button class="nav-link" onclick="window.location.href='/user/user-search'">Sensors</button>
               <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
             </div>
           </nav>
@@ -2024,7 +2053,7 @@ router.get('/sensor-map', (req, res) => {
             <div class="tool-wrapper">
               <div class="dropdown-wrapper">
                 <button id="addUserBtn" onclick="graph.toggleUserDropdown()">
-                  <span class="button-text">Add User</span>
+                  <span class="button-text">Add Sensor</span>
                   <span id="user-count-badge" class="badge" style="display: none;"></span>
                   <span class="dropdown-arrow">▼</span>
                 </button>
@@ -2283,7 +2312,6 @@ router.get('/sensor-map', (req, res) => {
                         this.intersectionMarker.style.top = pixel.y + 'px';
                     }
                 }
-
                 async handleMouseDown(e) {
                     // Check if clicking delete button - stop all other actions
                     if (e.target.classList.contains('delete-btn')) {
@@ -3080,6 +3108,38 @@ router.get('/sensor-map', (req, res) => {
             // Grid is 100x100 (0-100 in both directions)
             const graph = new GridGraph('graph', 50);
 
+            async function checkSensorMapPermissions() {
+              try {
+                const response = await fetch('/user/permissions');
+                const data = await response.json();
+                const hasPermissions = data.permissions === true;
+
+                if (!hasPermissions) {
+                  const addUserBtn = document.getElementById('addUserBtn');
+                  const addBoundaryBtn = document.getElementById('addBoundaryBtn');
+                  
+                  if (addUserBtn) addUserBtn.style.display = 'none';
+                  if (addBoundaryBtn) addBoundaryBtn.style.display = 'none';
+                  
+                  const styleEl = document.createElement('style');
+                  styleEl.textContent = '.delete-btn { display: none !important; }';
+                  document.head.appendChild(styleEl);
+
+                  const pageWrapper = document.querySelector('.page-wrapper');
+                  const message = document.createElement('div');
+                  message.style.cssText = 'padding: 1.25rem 1.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(78, 205, 196, 0.3); border-radius: 12px; margin: 1.5rem auto; max-width: 1100px; color: var(--accent); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);';
+                  message.innerHTML = '<strong>Read-Only Mode:</strong> You do not have permission to add, edit, or delete sensors and boundaries. Contact an administrator to request editing access.';
+                  
+                  pageWrapper.insertBefore(message, pageWrapper.firstChild);
+                }
+              } catch (error) {
+                console.error('Error fetching permissions:', error);
+              }
+            }
+
+            checkSensorMapPermissions();
+
+
             window.addEventListener("load", () => {
               const app = document.getElementById("app");
               app.style.filter = "blur(0px)";
@@ -3088,6 +3148,29 @@ router.get('/sensor-map', (req, res) => {
         </script>
     </body>
     </html>`)
+})
+
+router.post('/set-permissions', async (req, res) => {
+  try {
+    const auth = parseBasicAuth(req);
+    if (!auth) return res.status(400).json({ err: 'Missing Basic Auth' });
+
+    const userId = req.userId;
+    const passw = auth.passw;
+    if (typeof passw !== 'string') {     // Input validation
+      return res.status(400).json({ err: 'Invalid password' });
+    }
+    const passwCorrect = await bcrypt.compare(passw, process.env.PASSW);
+    if (passwCorrect) {
+      await prisma.user.update({
+        where: {id: userId},
+        data: {admin: true}
+      })
+    }
+  } catch (error) {
+    logger.error('Error setting user permissions:', error);
+    return res.status(500).json({ err: 'Internal server error' });
+  }
 })
 
 router.get('/active-id', async (req, res) => {
@@ -3284,6 +3367,16 @@ router.get('/sensor-data', async (req, res) => {
   }
 });
 
+router.get('/permissions', async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({where: {id: req.userID}})
+    return res.status(200).json({ permissions: user.admin })
+  } catch (error) {
+    logger.error('Error retrieving permissions:', error);
+    return res.status(500).json({ err: 'Internal server error' });
+  }
+})
+
 router.delete('/cls-data', async (req, res) => {
   const data_email_type = req.body.ref;
   const split_ref = data_email_type.split(" ");
@@ -3299,6 +3392,10 @@ router.delete('/cls-data', async (req, res) => {
 
     if (!user) {
       return res.status(400).json({err: 'User Not Found'})
+    }
+
+    if (!user.admin) {
+      return res.status(403).json({ msg: "Must be admin" })
     }
     
     await prisma.dataPoint.deleteMany({
@@ -3328,6 +3425,12 @@ router.get('/get-users', async (req, res) => {
 
 router.post('/user-location', async (req, res) => {
   try {
+    const user = await prisma.user.findUnique({
+      where: {id: req.userID}
+    })
+    if (!user.admin) {
+      return res.status(403).json({ msg: "Must be admin" })
+    }
       await prisma.user.update({
         where: {id: req.body.id},
         data: {x: req.body.x, y: req.body.y}
@@ -3341,6 +3444,12 @@ router.post('/user-location', async (req, res) => {
 
 router.delete('/user-location', async (req, res) => {
   try {
+    const user = await prisma.user.findUnique({
+      where: {id: req.userID}
+    })
+    if (!user.admin) {
+      return res.status(403).json({ msg: "Must be admin" })
+    }
       await prisma.user.update({
         where: {id: req.body.id},
         data: {x: null, y: null}
@@ -3364,6 +3473,12 @@ router.get('/get-boundaries', async (req, res) => {
 
 router.delete('/boundary', async (req, res) => {
   try {
+    const user = await prisma.user.findUnique({
+      where: {id: req.userId}
+    })
+    if (!user.admin) {
+      return res.status(403).json({ msg: "Must be admin" })
+    }
     const id = req.body.id
     const boundary = await prisma.Boundary.delete({
       where: {id: id}
@@ -3384,6 +3499,12 @@ router.post('/boundary', async (req, res) => {
     const id = req.body.id
     
     if (id) {
+      const user = await prisma.user.findUnique({
+        where: {id: req.userID}
+      })
+      if (!user.admin) {
+        return res.status(403).json({ msg: "Must be admin" })
+      }
       // Update existing boundary
       const boundary = await prisma.Boundary.update({
         where: { id: id },
