@@ -3,6 +3,16 @@ import { prisma } from '../../prismaClient.js';
 import logger from '../../logger.js';
 import bcrypt from 'bcryptjs'
 
+function parseBasicAuth(req) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Basic ')) return null;
+
+  const base64Credentials = authHeader.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+  const [email, password] = credentials.split(':');
+  return { email, password };
+}
+
 const router = express.Router();
 
 router.get('/analytics', (req, res) => {
@@ -1329,12 +1339,12 @@ router.get('/user-search', (req, res) => {
             <div class="page-wrapper">
               <div class="search-panel">
                 <div class="search-wrapper">
-                  <label for="user-search" class="search-label">Search Users</label>
+                  <label for="user-search" class="search-label">Search Sensors</label>
                   <input 
                     id="user-search" 
                     type="text" 
                     class="search-input" 
-                    placeholder="Type to search by email or name..."
+                    placeholder="Type to search by identifier" 
                     autocomplete="off"
                   />
                 </div>
@@ -3154,19 +3164,23 @@ router.post('/set-permissions', async (req, res) => {
   try {
     const auth = parseBasicAuth(req);
     if (!auth) return res.status(400).json({ err: 'Missing Basic Auth' });
+    const admin = req.body.admin || false
+    if (typeof admin !== 'boolean')
 
-    const userId = req.userId;
-    const passw = auth.passw;
+    const userId = req.userID;
+    const passw = auth.password;
     if (typeof passw !== 'string') {     // Input validation
       return res.status(400).json({ err: 'Invalid password' });
     }
-    const passwCorrect = await bcrypt.compare(passw, process.env.PASSW);
+    const passwCorrect = await bcrypt.compare(passw, Buffer.from(process.env.PASSW, 'base64').toString('utf8'));
     if (passwCorrect) {
       await prisma.user.update({
         where: {id: userId},
-        data: {admin: true}
+        data: {admin: admin}
       })
+      return res.status(200).json({ msg: "Successfully updated permissions"})
     }
+    return res.status(403).json({ msg: "Passw incorrect"})
   } catch (error) {
     logger.error('Error setting user permissions:', error);
     return res.status(500).json({ err: 'Internal server error' });
@@ -3370,6 +3384,7 @@ router.get('/sensor-data', async (req, res) => {
 router.get('/permissions', async (req, res) => {
   try {
     const user = await prisma.user.findUnique({where: {id: req.userID}})
+    console.log(user)
     return res.status(200).json({ permissions: user.admin })
   } catch (error) {
     logger.error('Error retrieving permissions:', error);
