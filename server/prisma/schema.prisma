@@ -24,4 +24,14 @@ model User {
   passw     String
   createdAt DateTime @default(now())
   dataPoints DataPoint[]
+  x          Int?
+  y          Int?
+}
+
+model Boundary {
+  id         Int @id @default(autoincrement())
+  x          Int
+  y          Int
+  width      Int
+  height     Int
 }
