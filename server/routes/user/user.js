@@ -3165,7 +3165,9 @@ router.post('/set-permissions', async (req, res) => {
     const auth = parseBasicAuth(req);
     if (!auth) return res.status(400).json({ err: 'Missing Basic Auth' });
     const admin = req.body.admin || false
-    if (typeof admin !== 'boolean')
+    if (typeof admin !== 'boolean') {
+      return req.status(400).json({err: "Invalid permissions"})
+    }
 
     const userId = req.userID;
     const passw = auth.password;
