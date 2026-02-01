@@ -135,7 +135,6 @@ router.get('/analytics', (req, res) => {
               text-decoration: none;
               position: relative;
               outline: none;
-              font-size: 1.1rem;
             }
 
             .nav-link::after {
@@ -365,6 +364,17 @@ router.get('/analytics', (req, res) => {
             }
 
               @media (max-width: 600px) {
+              .custom-range .text-input {
+                  font-size: 13px;
+                  height: 36px;
+                  padding: 6px 7px;
+              }
+                  .custom-range {
+                      display: flex;
+                      flex-direction: column;
+                      gap: 0.5rem;
+                      align-items: flex-start;
+                  }
                   canvas {
                       aspect-ratio: 4 / 3;
                   }
