@@ -267,7 +267,7 @@ router.get('/signup', async (req, res) => {
                     });
 
                     if (response.ok) {
-                        window.location.href = '/user/analytics'; // Redirect to analytics dashboard
+                        window.location.href = '/user/sensors'; // Redirect to sensors dashboard
                     } else {
                         const data = await response.json();
                         errorElement.textContent = data.err || 'Signup failed';
@@ -601,7 +601,7 @@ router.get('/login', async (req, res) => {
                     });
 
                     if (response.ok) {
-                        window.location.href = '/user/analytics'; // Redirect to analytics dashboard
+                        window.location.href = '/user/sensors'; // Redirect to sensors dashboard
                     } else {
                         const data = await response.json();
                         errorElement.textContent = data.err || 'Login failed';
@@ -634,6 +634,10 @@ router.post('/login', async (req, res) => {
         const email = auth.email.trim();
         const passw = auth.password;
 
+        if (typeof passw !== 'string' || passw.length < minPasswLen) {     // Input validation
+            return res.status(400).json({ err: 'Invalid password' });
+        }
+
         // Validate input
         if (validator.isEmail(email)) {
             // Check domain
@@ -642,10 +646,42 @@ router.post('/login', async (req, res) => {
             if (!allowedDomains.includes(domain)) {
                 return res.status(400).json({ err: 'Email domain not allowed' });
             }
-        }
+        } else { // attempting to log in as sensor
+            // Find user by email
+            const sensor = await prisma.sensor.findFirst({
+                where: {
+                OR: [
+                    { name: email },
+                ]
+                }
+            });
+            
+            if (!sensor) {
+                return res.status(404).json({ err: 'Incorrect password or name' });
+            }
 
-        if (typeof passw !== 'string' || passw.length < minPasswLen) {     // Input validation
-            return res.status(400).json({ err: 'Invalid password' });
+            // Check for valid password
+            const passwCorrect = await bcrypt.compare(passw, sensor.passw);
+            if (passwCorrect) {
+                // Generate JWT token   
+                const token = jwt.sign(
+                    { sensorId: sensor.id, name: sensor.name },
+                    JWT_SECRET,
+                    { expiresIn: '24h' }
+                );
+
+                // Set JWT token in HTTP-only cookie
+                res.cookie('jwt', token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'none',
+                    maxAge: maxJWTAge
+                });
+
+                return res.status(200).json({ message: 'Login successful' });
+            } else {
+                return res.status(401).json({ err: 'Incorrect password or email' });
+            }
         }
 
         // Find user by email
@@ -681,7 +717,7 @@ router.post('/login', async (req, res) => {
 
             return res.status(200).json({ message: 'Login successful' });
         } else {
-            return res.status(401).json({ err: 'Incorrect password or email' });
+            return res.status(401).json({ err: 'Incorrect password or name 2' });
         }
     } catch (err) {
         logger.error('Error in login', {

@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 dotenv.config();
 
 const ARDUINO_PORT = process.env.ARDUINO_PORT || "COM3";
-const BAUD_RATE = 9600;
+const BAUD_RATE = 115200;
 
 // Initialize serial port + parser ONCE
 const port = new SerialPort({ path: ARDUINO_PORT, baudRate: BAUD_RATE });
@@ -29,7 +29,6 @@ export default async function startSerialReader(onData) {
 
       if (onData) {
         try {
-          console.log(data);
           await onData(data);
         } catch (err) {
           console.error("Error in onData callback:", err);

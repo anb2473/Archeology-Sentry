@@ -14,8 +14,8 @@ model DataPoint {
   type        String
   value       Float
   createdAt   DateTime @default(now())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
+  sensorId      Int
+  sensor        Sensor     @relation(fields: [sensorId], references: [id])
 }
 
 model User {
@@ -23,10 +23,16 @@ model User {
   email     String @unique
   passw     String
   createdAt DateTime @default(now())
+  admin      Boolean @default(false)
+}
+
+model Sensor {
+  id        Int @id @default(autoincrement())
   dataPoints DataPoint[]
   x          Int?
   y          Int?
-  admin      Boolean @default(false)
+  name      String @unique
+  passw     String
 }
 
 model Boundary {

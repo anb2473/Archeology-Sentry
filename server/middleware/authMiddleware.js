@@ -19,6 +19,7 @@ function authMiddleware(req, res, next) {
         
         // Attatch userId from JWT for EJS
         req.userID = decoded.userId;
+        req.sensorID = decoded.sensorId;
         next(); // Route user to user pages
     });
 }
