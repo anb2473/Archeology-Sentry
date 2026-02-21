@@ -18,7 +18,7 @@ int motion_state = LOW;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println(F("Starting Temp/Humidity and Motion Sensor System..."));
+  Serial.println(F("Info Starting Temp/Humidity and Motion Sensor System..."));
 
   // Initialize DHT sensor
   dht.begin(); 
@@ -27,9 +27,9 @@ void setup() {
   pinMode(MOTION_PIN, INPUT); 
   
   // Give the PIR sensor time to calibrate (typically 10-60 seconds)
-  Serial.println(F("PIR Sensor Calibrating (20s delay)..."));
+  Serial.println(F("Info PIR Sensor Calibrating (20s delay)..."));
   delay(20000); 
-  Serial.println(F("PIR Sensor Ready."));
+  Serial.println(F("Info PIR Sensor Ready."));
 }
 
 // ------------------------------------------------------------------
@@ -44,15 +44,15 @@ void get_dht_data() {
 
   // Check if any reads failed
   if (isnan(humidity) || isnan(temperature_f)) {
-    Serial.println(F("DHT Failed to read!"));
+    Serial.println(F("Info DHT Failed to read!"));
     return; // Exit function if reading failed
   }
   
   // Output data with prefixes
-  Serial.print("H");
+  Serial.print("External_Humidity ");
   Serial.println(humidity, 1); // Humidity in %
   
-  Serial.print("T");
+  Serial.print("External_Temperature ");
   Serial.println(temperature_f, 1); // Temperature in Fahrenheit
 }
 
@@ -62,10 +62,10 @@ void get_motion_data() {
   motion_state = digitalRead(MOTION_PIN); 
 
   if (motion_state == HIGH) {
-    Serial.print("M"); // Motion Detected
+    Serial.print("Motion "); // Motion Detected
     Serial.println("1");
   } else {
-    Serial.print("M"); // No Motion Detected
+    Serial.print("Motion "); // No Motion Detected
     Serial.println("0");
   }
 }

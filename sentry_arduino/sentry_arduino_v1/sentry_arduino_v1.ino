@@ -21,15 +21,15 @@ float temperature_f = 0;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println(F("IStarting Temp/Humidity and Motion Sensor System..."));
+  Serial.println(F("Info Starting Temp/Humidity and Motion Sensor System..."));
 
   // Initialize DHT sensor
   dht.begin();  
   
   // Give the sensor time to calibrate (typically 10-60 seconds)
-  Serial.println(F("ISensor Calibrating (20s delay)..."));
+  Serial.println(F("Info Sensor Calibrating (20s delay)..."));
   delay(20000); 
-  Serial.println(F("ISensor Ready."));
+  Serial.println(F("Info Sensor Ready."));
 }
 
 // ------------------------------------------------------------------
@@ -44,15 +44,15 @@ void get_dht_data() {
 
   // Check if any reads failed
   if (isnan(humidity) || isnan(temperature_f)) {
-    Serial.println(F("EDHT Failed to read!"));
+    Serial.println(F("Error EDHT Failed to read!"));
     return; // Exit function if reading failed
   }
   
   // Output data with prefixes
-  Serial.print("H");
+  Serial.print("External_Humidity ");
   Serial.println(humidity, 1); // Humidity in %
   
-  Serial.print("T");
+  Serial.print("External_Temperature ");
   Serial.println(temperature_f, 1); // Temperature in Fahrenheit
 }
 

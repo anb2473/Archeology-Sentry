@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 dotenv.config();
 
 const ARDUINO_PORT = process.env.ARDUINO_PORT || "COM3";
-const BAUD_RATE = 115200;
+const BAUD_RATE = parseInt(process.env.BAUD_RATE) || 115200;
 
 // Initialize serial port + parser ONCE
 const port = new SerialPort({ path: ARDUINO_PORT, baudRate: BAUD_RATE });

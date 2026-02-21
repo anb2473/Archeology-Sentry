@@ -1166,6 +1166,7 @@ router.get('/map', (req, res) => {
                     point.dataset.id = pointId;
                     point.style.left = pixel.x + 'px';
                     point.style.top = pixel.y + 'px';
+                    point.onclick = "window.location.href='/analytics?sensor={pointId}'"
                     this.content.appendChild(point);
                     
                     // Create delete button
@@ -1188,7 +1189,7 @@ router.get('/map', (req, res) => {
                     const label = document.createElement('div');
                     label.className = 'point-label';
                     label.id = 'label-' + pointId;
-                    label.textContent = user.email;
+                    label.textContent = user.name;
                     label.style.left = pixel.x + 'px';
                     label.style.top = (pixel.y + 15) + 'px';
                     this.content.appendChild(label);
@@ -1197,7 +1198,7 @@ router.get('/map', (req, res) => {
                     this.points.set(pointId, {
                         gridX: gridX,
                         gridY: gridY,
-                        name: user.email,
+                        name: user.name,
                         element: point,
                         labelElement: label,
                         userId: user.id
@@ -1396,7 +1397,7 @@ router.get('/map', (req, res) => {
                         this.usersWithoutLocation.forEach(user => {
                             const item = document.createElement('div');
                             item.className = 'user-list-item';
-                            item.textContent = user.email;
+                            item.textContent = user.name;
                             item.onclick = () => {
                                 this.selectedUser = user;
                                 this.closeUserDropdown();
@@ -1430,7 +1431,7 @@ router.get('/map', (req, res) => {
                     }
                     
                     btn.classList.add('active');
-                    btn.querySelector('.button-text').textContent = 'Click to Place: ' + this.selectedUser.email;
+                    btn.querySelector('.button-text').textContent = 'Click to Place: ' + this.selectedUser.name;
                     this.container.style.cursor = 'crosshair';
                 }
 
@@ -1440,7 +1441,7 @@ router.get('/map', (req, res) => {
                     
                     if (this.addUserMode && this.selectedUser) {
                         btn.classList.add('active');
-                        btn.querySelector('span').textContent = 'Click to Place: ' + this.selectedUser.email;
+                        btn.querySelector('span').textContent = 'Click to Place: ' + this.selectedUser.name;
                         this.container.style.cursor = 'crosshair';
                     } else {
                         this.addUserMode = false;
@@ -2444,23 +2445,9 @@ router.get('/sensors', (req, res) => {
                       throw new Error('Failed to fetch sensors');
                   }
                   const { sensors = [] } = await response.json();
-                  return sensors.map(sensor => sensor.name);
+                  return sensors
               } catch (error) {
                   console.error('Error loading sensors:', error);
-                  return [];
-              }
-          }
-
-          async function fetchSensorTypes() {
-              try {
-                  const response = await fetch('/user/sensor-data/filters', { method: 'GET' });
-                  if (!response.ok) {
-                      throw new Error('Failed to fetch sensor types');
-                  }
-                  const { types = [] } = await response.json();
-                  return types;
-              } catch (error) {
-                  console.error('Error loading sensor types:', error);
                   return [];
               }
           }
@@ -2480,12 +2467,12 @@ router.get('/sensors', (req, res) => {
               \`;
           }
 
-          function renderSensors(sensors, types, searchTerm = '') {
+          function renderSensors(sensors, searchTerm = '') {
               const container = document.getElementById('sensors-container');
               container.innerHTML = '';
 
               const filteredSensors = sensors.filter(sensor =>
-                  sensor.toLowerCase().includes(searchTerm.toLowerCase())
+                  sensor.name.toLowerCase().includes(searchTerm.toLowerCase())
               );
 
               if (filteredSensors.length === 0) {
@@ -2505,7 +2492,7 @@ router.get('/sensors', (req, res) => {
               filteredSensors.forEach(sensor => {
                   const card = document.createElement('a');
                   card.className = 'sensor-card';
-                  card.href = \`/user/analytics?sensor=\${encodeURIComponent(sensor)}\`;
+                  card.href = \`/user/analytics?sensor=\${encodeURIComponent(sensor.name)}\`;
 
                   const header = document.createElement('div');
                   header.className = 'sensor-card-header';
@@ -2517,16 +2504,16 @@ router.get('/sensors', (req, res) => {
 
                   const name = document.createElement('h2');
                   name.className = 'sensor-name';
-                  name.textContent = sensor;
+                  name.textContent = sensor.name;
                   header.appendChild(name);
 
                   card.appendChild(header);
 
-                  if (types.length > 0) {
+                  if (sensor.types.length > 0) {
                       const typesContainer = document.createElement('div');
                       typesContainer.className = 'sensor-types';
                       
-                      types.forEach(type => {
+                      sensor.types.forEach(type => {
                           const badge = document.createElement('span');
                           badge.className = 'sensor-type-badge';
                           badge.textContent = type.replace('_', ' ');
@@ -2592,16 +2579,14 @@ router.get('/sensors', (req, res) => {
               showLoading();
               await checkAdminPermissions();
               const sensors = await fetchSensors();
-              const types = await fetchSensorTypes();
               allSensors = sensors;
-              renderSensors(sensors, types);
+              renderSensors(sensors);
           }
 
           // Search functionality
           document.addEventListener('DOMContentLoaded', () => {
               const searchInput = document.getElementById('search-input');
               searchInput.addEventListener('input', async (e) => {
-                  const types = await fetchSensorTypes();
                   renderSensors(allSensors, types, e.target.value);
               });
 
@@ -3029,8 +3014,8 @@ router.get('/analytics', (req, res) => {
                   </a>
                   <div class="nav-actions">
                       <a href="/user/sensors" class="nav-link">Sensors</a>
-                      <a href="/user/admin" class="nav-link">Admin</a>
                       <a href="/user/map" class="nav-link">Map</a>
+                      <a href="/user/admin" class="nav-link">Admin</a>
                       <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
                   </div>
               </nav>
@@ -4284,7 +4269,7 @@ router.delete('/user-location', async (req, res) => {
     if (!user.admin) {
       return res.status(403).json({ msg: "Must be admin" })
     }
-      await prisma.user.update({
+      await prisma.sensor.update({
         where: {id: req.body.id},
         data: {x: null, y: null}
       })
@@ -4308,13 +4293,13 @@ router.get('/get-boundaries', async (req, res) => {
 router.delete('/boundary', async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: {id: req.userId}
+      where: {id: req.userID}
     })
     if (!user.admin) {
       return res.status(403).json({ msg: "Must be admin" })
     }
     const id = req.body.id
-    const boundary = await prisma.Boundary.delete({
+    await prisma.Boundary.delete({
       where: {id: id}
     })
     return res.status(200).json({ msg: "Successfully deleted boundary" })
@@ -4402,8 +4387,19 @@ router.post('/create-sensor', async (req, res) => {
 
 router.get('/load-sensors', async (req, res) => {
   try {
-    const sensors = await prisma.sensor.findMany()
-    return res.status(200).json({sensors})
+    const sensors = await prisma.sensor.findMany({
+        include: {
+            dataPoints: {
+                select: {type: true}
+            }
+        }
+    })
+    const formattedSensors = sensors.map(sensor => {
+        const types = [...new Set(sensor.dataPoints.map(dp => dp.type))].filter(Boolean).sort();
+        const {dataPoints, ...sensorData} = sensor;
+        return {...sensorData, types}
+    })
+    return res.status(200).json({sensors: formattedSensors})
   } catch (error) {
     logger.error('Error loading sensors:', error);
     return res.status(500).json ({ err: 'Internal server error' })
