@@ -29,10 +29,22 @@ model User {
 model Sensor {
   id        Int @id @default(autoincrement())
   dataPoints DataPoint[]
+  alerts     Alert[]
   x          Int?
   y          Int?
   name      String @unique
   passw     String
+}
+
+model Alert {
+  sensorId      Int
+  sensor        Sensor     @relation(fields: [sensorId], references: [id])
+  datatype      String?
+  min           Int?
+  max           Int?
+  email         String?
+  name          String @unique
+  id            Int @id @default(autoincrement())
 }
 
 model Boundary {

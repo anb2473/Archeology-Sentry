@@ -587,6 +587,7 @@ router.get('/map', (req, res) => {
                 <div class="nav-actions">
                     <a href="/user/sensors" class="nav-link">Sensors</a>
                     <a href="/user/map" class="nav-link navfocus">Map</a>
+                    <a href="/user/alerts" class="nav-link">Alerts</a>
                     <a href="/user/admin" class="nav-link">Admin</a>
                     <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
                 </div>
@@ -2327,6 +2328,7 @@ router.get('/sensors', (req, res) => {
                   <div class="nav-actions">
                         <a href="/user/sensors" class="nav-link navfocus">Sensors</a>
                         <a href="/user/map" class="nav-link">Map</a>
+                        <a href="/user/alerts" class="nav-link">Alerts</a>
                         <a href="/user/admin" class="nav-link">Admin</a>
                       <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
                   </div>
@@ -3015,6 +3017,7 @@ router.get('/analytics', (req, res) => {
                   <div class="nav-actions">
                       <a href="/user/sensors" class="nav-link">Sensors</a>
                       <a href="/user/map" class="nav-link">Map</a>
+                      <a href="/user/alerts" class="nav-link">Alerts</a>
                       <a href="/user/admin" class="nav-link">Admin</a>
                       <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
                   </div>
@@ -3028,9 +3031,9 @@ router.get('/analytics', (req, res) => {
                   <div class="timeframe-selector">
                       <button class="timeframe-btn" data-timeframe="900000">15 min</button>
                       <button class="timeframe-btn" data-timeframe="1800000">30 min</button>
-                      <button class="timeframe-btn active" data-timeframe="3600000">1 hour</button>
+                      <button class="timeframe-btn" data-timeframe="3600000">1 hour</button>
                       <button class="timeframe-btn" data-timeframe="21600000">6 hours</button>
-                      <button class="timeframe-btn" data-timeframe="86400000">24 hours</button>
+                      <button class="timeframe-btn active" data-timeframe="86400000">24 hours</button>
                       <button class="timeframe-btn" data-timeframe="604800000">7 days</button>
                       <button class="timeframe-btn custom" data-timeframe="custom">Custom</button>
                   </div>
@@ -3848,6 +3851,7 @@ router.get('/admin', (req, res) => {
                   <div class="nav-actions">
                       <a href="/user/sensors" class="nav-link">Sensors</a>
                       <a href="/user/map" class="nav-link">Map</a>
+                      <a href="/user/alerts" class="nav-link">Alerts</a>
                       <a href="/user/admin" class="nav-link navfocus">Admin</a>
                       <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
                   </div>
@@ -3984,6 +3988,1022 @@ router.get('/admin', (req, res) => {
   </body>
   </html>`);
 });
+
+router.get('/alerts', async (req, res, next) => {
+    const accepts = req.headers['accept'] || '';
+    const wantsJson = req.xhr || accepts.includes('application/json');
+    if (wantsJson) {
+        return next();
+    }
+    return res.send(`<!doctype html>
+  <html lang="en">
+  <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Archeology Sentry - Alerts</title>
+      <style>
+          :root {
+              --bg: #111;
+              --fg: #fff;
+              --accent: #4ecdc4;
+              --muted: #bfbfbf;
+              --error: #ff4444;
+          }
+
+          html, body {
+              height: 100%;
+              margin: 0;
+              background: var(--bg);
+              color: var(--fg);
+              font-family: 'Inter', system-ui, Arial, sans-serif;
+          }
+
+          *, *::before, *::after { box-sizing: border-box; }
+
+          #app {
+              filter: blur(15px);
+              opacity: 0;
+              transition: filter 0.8s ease, opacity 0.8s ease;
+          }
+
+          #app-bg {
+              min-height: 100vh;
+              position: relative;
+              background-image: url('/images/login-img.jpg');
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              background-attachment: fixed;
+          }
+
+          #app-bg::before {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);
+              z-index: 0;
+          }
+
+          .page-wrapper {
+              min-height: 100vh;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              padding: 6rem 1rem 3rem;
+              position: relative;
+          }
+
+          .navbar {
+              width: 100%;
+              max-width: 100vw;
+              box-sizing: border-box;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 20px 5vw;
+              background: none;
+              position: fixed;
+              top: 0;
+              left: 0;
+              z-index: 100;
+          }
+        
+          .navfocus {
+            color: #fff
+          }
+          .nav-link.navfocus::after {
+            background: var(--accent);
+          }
+
+          .navbar .logo {
+              width: 54px;
+              height: 54px;
+              border-radius: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+          }
+
+          .navbar .logo img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+          }
+
+          .nav-actions {
+              margin-left: auto;
+              display: flex;
+              gap: 1rem;
+              align-items: center;
+          }
+
+          .nav-link {
+              color: #b8b8b8;
+              background: transparent;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-weight: 600;
+              text-decoration: none;
+              position: relative;
+              outline: none;
+              transition: color 0.2s ease;
+          }
+
+          .nav-link::after {
+              content: '';
+              position: absolute;
+              left: 0;
+              right: 0;
+              bottom: -2px;
+              height: 2px;
+              background: transparent;
+              transition: background 180ms ease;
+          }
+
+          .navbar .cta {
+              background: var(--accent);
+              color: #111;
+              border: none;
+              border-radius: 8px;
+              font-size: 1.1rem;
+              font-weight: 700;
+              padding: 12px 32px;
+              cursor: pointer;
+              box-shadow: 0 2px 12px rgba(78,205,196,0.08);
+              transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+          }
+
+          .navbar .cta:hover, .navbar .cta:focus {
+              background: #7be3db;
+              color: #111;
+              box-shadow: 0 4px 24px var(--accent);
+              transform: translateY(-2px) scale(1.04);
+          }
+            
+          .navfocus {
+            color: #fff
+          }
+
+          .alerts-content {
+              width: 100%;
+              max-width: 900px;
+              display: flex;
+              flex-direction: column;
+              gap: 2rem;
+          }
+
+          .alerts-header h1 {
+              margin: 0 0 0.5rem 0;
+              font-size: 2.2rem;
+              font-weight: 700;
+              color: var(--accent);
+          }
+
+          .alerts-header p {
+              margin: 0;
+              color: var(--muted);
+              font-size: 1rem;
+          }
+
+          .editing-label {
+              margin-top: 0.35rem;
+              font-size: 0.9rem;
+              color: var(--accent);
+          }
+
+          .new-alert {
+              width: 100%;
+              padding: 2rem;
+              border-radius: 12px;
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(78, 205, 196, 0.3);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          }
+
+          .alert-form-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+              gap: 1.25rem 1.5rem;
+              margin-top: 1.5rem;
+          }
+
+          .form-field {
+              display: flex;
+              flex-direction: column;
+              gap: 0.5rem;
+          }
+
+          .form-field label {
+              font-weight: 600;
+              color: var(--fg);
+              font-size: 0.95rem;
+          }
+
+          .form-field input,
+          .form-field select {
+              width: 100%;
+              padding: 10px 14px;
+              border-radius: 8px;
+              border: 1px solid rgba(78,205,196,0.6);
+              background: transparent;
+              color: var(--fg);
+              font-size: 0.95rem;
+              outline: none;
+              transition: all 0.3s ease;
+          }
+
+          .form-field input:focus,
+          .form-field select:focus {
+              border-color: var(--accent);
+              background-color: rgba(78,205,196,0.12);
+          }
+
+          /* Custom dropdown component */
+          .dropdown {
+              position: relative;
+              width: 100%;
+          }
+
+          .dropdown-display {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 10px 14px;
+              border-radius: 8px;
+              border: 1px solid rgba(78,205,196,0.6);
+              color: var(--fg);
+              cursor: pointer;
+              transition: all 0.2s ease;
+          }
+
+          .dropdown-display:hover,
+          .dropdown.dropdown-open .dropdown-display {
+              border-color: var(--accent);
+              background: rgba(78,205,196,0.12);
+          }
+
+          .dropdown-value {
+              font-size: 0.95rem;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+          }
+
+          .dropdown-arrow {
+              width: 0;
+              height: 0;
+              border-left: 5px solid transparent;
+              border-right: 5px solid transparent;
+              border-top: 6px solid var(--accent);
+              margin-left: 10px;
+              flex-shrink: 0;
+          }
+
+          .dropdown-menu {
+              position: absolute;
+              left: 0;
+              right: 0;
+              top: calc(100% + 6px);
+              max-height: 220px;
+              overflow-y: auto;
+              border-radius: 8px;
+              border: 1px solid rgba(78,205,196,0.6);
+              background: #111;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+              z-index: 50;
+              display: none;
+          }
+
+          .dropdown.dropdown-open .dropdown-menu {
+              display: block;
+          }
+
+          .dropdown-option {
+              padding: 8px 14px;
+              font-size: 0.9rem;
+              cursor: pointer;
+              color: var(--fg);
+          }
+
+          .dropdown-option:hover {
+              background: rgba(78,205,196,0.15);
+          }
+
+          .dropdown-option.disabled {
+              cursor: default;
+              color: var(--muted);
+          }
+
+          /* Hide default number input arrows */
+          .form-field input[type="number"]::-webkit-outer-spin-button,
+          .form-field input[type="number"]::-webkit-inner-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+          }
+
+          .form-field input[type="number"] {
+              -moz-appearance: textfield;
+          }
+
+          .form-actions {
+              margin-top: 1.75rem;
+              display: flex;
+              flex-wrap: wrap;
+              gap: 1rem;
+              align-items: center;
+          }
+
+          .primary-button {
+              padding: 12px 24px;
+              border-radius: 8px;
+              border: none;
+              background: var(--accent);
+              color: #111;
+              font-weight: 600;
+              font-size: 0.95rem;
+              cursor: pointer;
+              transition: all 0.2s ease;
+          }
+
+          .primary-button:hover {
+              background: #7be3db;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 16px rgba(78, 205, 196, 0.3);
+          }
+
+          .primary-button:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+              transform: none;
+              box-shadow: none;
+          }
+
+          .secondary-button {
+              padding: 10px 18px;
+              border-radius: 8px;
+              border: 1px solid rgba(78,205,196,0.4);
+              background: transparent;
+              color: var(--muted);
+              font-weight: 500;
+              font-size: 0.9rem;
+              cursor: pointer;
+              transition: all 0.2s ease;
+          }
+
+          .secondary-button:hover {
+              background: rgba(255,255,255,0.05);
+              color: var(--fg);
+              border-color: var(--accent);
+          }
+
+          .new-alert.editing {
+              border-color: var(--accent);
+              box-shadow: 0 0 0 1px rgba(78,205,196,0.4), 0 4px 18px rgba(0,0,0,0.6);
+          }
+
+          .message {
+              padding: 0.9rem 1rem;
+              border-radius: 8px;
+              font-size: 0.9rem;
+              display: none;
+          }
+
+          .message.success {
+              background: rgba(81, 207, 102, 0.1);
+              border: 1px solid rgba(81, 207, 102, 0.4);
+              color: #51cf66;
+              display: block;
+          }
+
+          .message.error {
+              background: rgba(255, 68, 68, 0.1);
+              border: 1px solid rgba(255, 68, 68, 0.4);
+              color: var(--error);
+              display: block;
+          }
+
+          .alerts-lists {
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+              margin-top: 0.5rem;
+          }
+
+          .alerts-list {
+              display: flex;
+              flex-direction: column;
+              gap: 0.25rem;
+          }
+
+          .alert-row {
+              display: grid;
+              grid-template-columns: 1.6fr 1.2fr 1fr 1fr 1.6fr auto;
+              align-items: center;
+              padding: 0.55rem 0.25rem;
+              column-gap: 0.75rem;
+              border-bottom: 1px solid rgba(255,255,255,0.04);
+          }
+
+          .alert-row:last-child {
+              border-bottom: none;
+          }
+
+          .alert-header-row {
+              font-size: 0.78rem;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--muted);
+          }
+
+          .alert-row:not(.alert-header-row):hover {
+              background: rgba(255,255,255,0.03);
+          }
+
+          .alert-cell {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+          }
+
+          .alert-actions {
+              display: flex;
+              justify-content: flex-end;
+          }
+
+          .alert-actions .primary-button {
+              padding: 6px 12px;
+              font-size: 0.8rem;
+          }
+
+          .alert-card {
+              width: 100%;
+              padding: 1.1rem 1.25rem;
+              border-radius: 12px;
+              background: rgba(255, 255, 255, 0.04);
+              border: 1px solid rgba(78, 205, 196, 0.25);
+              box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+          }
+
+          .alert-card-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 0.75rem;
+          }
+
+          .alert-card-title {
+              margin: 0;
+              font-size: 1.1rem;
+              font-weight: 600;
+              color: var(--fg);
+          }
+
+          .alert-card-view {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+              gap: 0.4rem 1.25rem;
+          }
+
+          .alert-card-field {
+              display: flex;
+              flex-direction: column;
+              gap: 0.1rem;
+              font-size: 0.85rem;
+          }
+
+          .alert-card-field-label {
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--muted);
+              font-size: 0.75rem;
+          }
+
+          .alert-card-field-value {
+              color: var(--fg);
+          }
+
+          .inline-input {
+              width: 100%;
+              padding: 6px 8px;
+              border-radius: 6px;
+              border: 1px solid rgba(78,205,196,0.6);
+              background: rgba(0,0,0,0.7);
+              color: var(--fg);
+              font-size: 0.85rem;
+              outline: none;
+          }
+
+          .inline-input:focus {
+              border-color: var(--accent);
+              background: rgba(78,205,196,0.18);
+          }
+
+          .inline-range-inputs {
+              display: flex;
+              gap: 0.25rem;
+          }
+
+          @media (max-width: 768px) {
+              .navbar .cta {
+                  font-size: 0.95rem;
+                  padding: 10px 20px;
+              }
+
+              .page-wrapper {
+                  padding-top: 5.5rem;
+              }
+
+              .new-alert {
+                  padding: 1.5rem;
+              }
+          }
+      </style>
+  </head>
+  <body>
+      <div id="app">
+          <div id="app-bg">
+              <nav class="navbar">
+                  <a href="/" class="logo">
+                      <img src="/icon/logo.png" alt="Archeology Sentry" />
+                  </a>
+                  <div class="nav-actions">
+                      <a href="/user/sensors" class="nav-link">Sensors</a>
+                      <a href="/user/map" class="nav-link">Map</a>
+                      <a href="/user/alerts" class="nav-link navfocus">Alerts</a>
+                      <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
+                  </div>
+              </nav>
+              <div class="page-wrapper">
+                  <div class="alerts-content">
+                      <header class="alerts-header">
+                          <h1 id="alerts-title">Create a New Alert</h1>
+                          <p>Choose a sensor and data type, then define when alerts should trigger.</p>
+                          <div id="editing-label" class="editing-label" style="display:none;"></div>
+                      </header>
+
+                      <section class="new-alert" id="alert-form-card">
+                          <div class="alert-form-grid">
+                              <div class="form-field">
+                                  <label for="name">Alert Name</label>
+                                  <input type="text" id="name" name="name" placeholder="e.g. High Humidity in Gallery A" />
+                              </div>
+
+                              <div class="form-field">
+                                  <label for="sensor-dropdown">Sensor</label>
+                                  <div class="dropdown" id="sensor-dropdown" data-placeholder="Select a sensor">
+                                      <div class="dropdown-display">
+                                          <span class="dropdown-value">Loading sensors...</span>
+                                          <span class="dropdown-arrow"></span>
+                                      </div>
+                                      <div class="dropdown-menu"></div>
+                                  </div>
+                              </div>
+
+                              <div class="form-field">
+                                  <label for="data-type">Data Type</label>
+                                  <div class="dropdown" id="data-type" data-placeholder="Select a data type">
+                                      <div class="dropdown-display">
+                                          <span class="dropdown-value">Loading data types...</span>
+                                          <span class="dropdown-arrow"></span>
+                                      </div>
+                                      <div class="dropdown-menu"></div>
+                                  </div>
+                              </div>
+
+                              <div class="form-field">
+                                  <label for="min">Minimum Trigger Value</label>
+                                  <input type="number" id="min" name="min" placeholder="Optional" />
+                              </div>
+
+                              <div class="form-field">
+                                  <label for="max">Maximum Trigger Value</label>
+                                  <input type="number" id="max" name="max" placeholder="Optional" />
+                              </div>
+
+                              <div class="form-field">
+                                  <label for="email">Alert Email</label>
+                                  <input type="email" id="email" name="email" placeholder="you@example.com" />
+                              </div>
+                          </div>
+
+                          <div class="form-actions">
+                              <button id="create-button" class="primary-button">Create Alert</button>
+                              <button id="cancel-edit-button" class="secondary-button" type="button" style="display:none;">Cancel Edit</button>
+                              <div class="message" id="message"></div>
+                          </div>
+                      </section>
+
+                      <section class="alerts-lists" id="alerts-lists">
+                          Existing alerts and history will appear here in the future.
+                      </section>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <script>
+          const createAlertButton = document.getElementById('create-button');
+          const cancelEditButton = document.getElementById('cancel-edit-button');
+          const nameInput = document.getElementById('name');
+          const emailInput = document.getElementById('email');
+          const minInput = document.getElementById('min');
+          const maxInput = document.getElementById('max');
+          const sensorDropdown = document.getElementById('sensor-dropdown');
+          const datatypeSelect = document.getElementById('data-type');
+          const alertsListContainer = document.getElementById('alerts-lists');
+          const alertFormCard = document.getElementById('alert-form-card');
+          const alertsTitle = document.getElementById('alerts-title');
+          const editingLabel = document.getElementById('editing-label');
+          let editingAlertName = null;
+          let sensorOptionsCache = [];
+          let typeOptionsCache = [];
+
+          function setupDropdown(container, options, placeholderText, emptyText) {
+              if (!container) return;
+
+              container.dataset.value = '';
+              const display = container.querySelector('.dropdown-value');
+              const menu = container.querySelector('.dropdown-menu');
+              if (!display || !menu) return;
+
+              display.textContent = placeholderText;
+              menu.innerHTML = '';
+
+              if (!options.length) {
+                  const item = document.createElement('div');
+                  item.className = 'dropdown-option disabled';
+                  item.textContent = emptyText || 'No options';
+                  menu.appendChild(item);
+                  return;
+              }
+
+              options.forEach(function(opt) {
+                  const item = document.createElement('div');
+                  item.className = 'dropdown-option';
+                  item.textContent = opt.label;
+                  item.setAttribute('data-value', opt.value);
+                  item.addEventListener('click', function() {
+                      container.dataset.value = String(opt.value);
+                      display.textContent = opt.label;
+                      container.classList.remove('dropdown-open');
+                  });
+                  menu.appendChild(item);
+              });
+
+              container.addEventListener('click', function(e) {
+                  const isOption = e.target.classList.contains('dropdown-option');
+                  if (!isOption) {
+                      container.classList.toggle('dropdown-open');
+                  }
+              });
+          }
+
+          function setDropdownValue(container, value) {
+              if (!container) return;
+              const menu = container.querySelector('.dropdown-menu');
+              const display = container.querySelector('.dropdown-value');
+              if (!menu || !display) return;
+
+              const items = menu.querySelectorAll('.dropdown-option');
+              for (let i = 0; i < items.length; i++) {
+                  const item = items[i];
+                  if (item.getAttribute('data-value') === String(value)) {
+                      container.dataset.value = String(value);
+                      display.textContent = item.textContent;
+                      break;
+                  }
+              }
+          }
+
+          function exitEditMode() {
+              editingAlertName = null;
+              createAlertButton.textContent = 'Create Alert';
+              if (alertsTitle) {
+                  alertsTitle.textContent = 'Create a New Alert';
+              }
+              if (editingLabel) {
+                  editingLabel.style.display = 'none';
+                  editingLabel.textContent = '';
+              }
+              if (cancelEditButton) {
+                  cancelEditButton.style.display = 'none';
+              }
+              if (alertFormCard) {
+                  alertFormCard.classList.remove('editing');
+              }
+              nameInput.value = '';
+              emailInput.value = '';
+              minInput.value = '';
+              maxInput.value = '';
+              sensorDropdown.dataset.value = '';
+              datatypeSelect.dataset.value = '';
+              loadFilterOptions();
+          }
+
+          async function loadFilterOptions() {
+              try {
+                  const response = await fetch('/user/sensor-data/filters');
+                  if (!response.ok) {
+                      throw new Error('Failed to load filter options');
+                  }
+
+                  const data = await response.json();
+                  const { users = [], types = [] } = data;
+
+                  const sensorOptions = users.map(function(name) {
+                      return { value: name, label: name };
+                  });
+
+                  const typeOptions = types.map(function(type) {
+                      return { value: type, label: type };
+                  });
+
+                  sensorOptionsCache = sensorOptions;
+                  typeOptionsCache = typeOptions;
+
+                  setupDropdown(
+                      sensorDropdown,
+                      sensorOptions,
+                      users.length ? 'Select a sensor' : 'No sensors available',
+                      'No sensors available'
+                  );
+
+                  setupDropdown(
+                      datatypeSelect,
+                      typeOptions,
+                      types.length ? 'Select a data type' : 'No data types available',
+                      'No data types available'
+                  );
+
+                  const disableForm = !users.length || !types.length;
+                  createAlertButton.disabled = disableForm;
+              } catch (error) {
+                  console.error('Error loading filter options:', error);
+                  showMessage('Unable to load sensors and data types. Please try again later.', 'error');
+                  createAlertButton.disabled = true;
+              }
+          }
+
+          async function loadAlerts() {
+              try {
+                  alertsListContainer.textContent = 'Loading alerts...';
+
+                  const response = await fetch('/user/alerts', {
+                      headers: {
+                          'Accept': 'application/json'
+                      }
+                  });
+
+                  if (!response.ok) {
+                      throw new Error('Failed to load alerts');
+                  }
+
+                  const data = await response.json();
+                  const alerts = data.alerts || [];
+
+                  if (!alerts.length) {
+                      alertsListContainer.textContent = 'No alerts have been created yet.';
+                      return;
+                  }
+
+                  alertsListContainer.innerHTML = '';
+
+                  alerts.forEach(function (alert) {
+                      const card = document.createElement('div');
+                      card.className = 'alert-card';
+
+                      const header = document.createElement('div');
+                      header.className = 'alert-card-header';
+
+                      const title = document.createElement('h2');
+                      title.className = 'alert-card-title';
+                      title.textContent = alert.name;
+
+                      const editBtn = document.createElement('button');
+                      editBtn.type = 'button';
+                      editBtn.className = 'secondary-button';
+                      editBtn.textContent = 'Edit';
+
+                      header.appendChild(title);
+                      header.appendChild(editBtn);
+                      card.appendChild(header);
+
+                      const view = document.createElement('div');
+                      view.className = 'alert-card-view';
+
+                      function addField(labelText, valueText) {
+                          const field = document.createElement('div');
+                          field.className = 'alert-card-field';
+
+                          const label = document.createElement('span');
+                          label.className = 'alert-card-field-label';
+                          label.textContent = labelText;
+
+                          const value = document.createElement('span');
+                          value.className = 'alert-card-field-value';
+                          value.textContent = valueText;
+
+                          field.appendChild(label);
+                          field.appendChild(value);
+                          view.appendChild(field);
+                      }
+
+                      addField('Sensor', (alert.sensor && alert.sensor.name) ? alert.sensor.name : '-');
+                      addField('Data Type', alert.datatype || '-');
+
+                      const parts = [];
+                      if (alert.min !== null && alert.min !== undefined) {
+                          parts.push('min ' + alert.min);
+                      }
+                      if (alert.max !== null && alert.max !== undefined) {
+                          parts.push('max ' + alert.max);
+                      }
+                      addField('Range', parts.length ? parts.join(', ') : '-');
+                      addField('Email', alert.email || '-');
+
+                      card.appendChild(view);
+
+                      editBtn.addEventListener('click', function () {
+                          editingAlertName = alert.name;
+                          nameInput.value = alert.name || '';
+                          emailInput.value = alert.email || '';
+                          minInput.value = alert.min ?? '';
+                          maxInput.value = alert.max ?? '';
+
+                          if (sensorOptionsCache.length && alert.sensor && alert.sensor.name) {
+                              setDropdownValue(sensorDropdown, alert.sensor.name);
+                          }
+                          if (typeOptionsCache.length && alert.datatype) {
+                              setDropdownValue(datatypeSelect, alert.datatype);
+                          }
+
+                          createAlertButton.textContent = 'Save Alert';
+                          if (alertsTitle) {
+                              alertsTitle.textContent = 'Edit Alert';
+                          }
+                          if (editingLabel) {
+                              editingLabel.textContent = 'Editing "' + (alert.name || '') + '". Make changes above, then save or cancel.';
+                              editingLabel.style.display = 'block';
+                          }
+                          if (cancelEditButton) {
+                              cancelEditButton.style.display = 'inline-flex';
+                          }
+                          if (alertFormCard) {
+                              alertFormCard.classList.add('editing');
+                              alertFormCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                          nameInput.focus();
+                      });
+
+                      alertsListContainer.appendChild(card);
+                  });
+              } catch (error) {
+                  console.error('Error loading alerts:', error);
+                  alertsListContainer.textContent = 'Unable to load alerts right now.';
+              }
+          }
+
+          createAlertButton.addEventListener('click', async () => {
+              const name = nameInput.value.trim();
+              const email = emailInput.value.trim();
+              const sensor = sensorDropdown.dataset.value || '';
+              const datatype = datatypeSelect.dataset.value || '';
+              const min = minInput.value;
+              const max = maxInput.value;
+
+              if (!name || !email || !sensor || !datatype) {
+                  showMessage('Please fill in alert name, email, sensor, and data type.', 'error');
+                  return;
+              }
+
+              createAlertButton.disabled = true;
+              hideMessage();
+
+              try {
+                  const response = await fetch('/user/alert', {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                          name,
+                          originalName: editingAlertName,
+                          sensor,
+                          datatype,
+                          min: min !== '' ? Number(min) : null,
+                          max: max !== '' ? Number(max) : null,
+                          alertEmail: email
+                      })
+                  });
+
+                  const data = await response.json().catch(() => ({}));
+
+                  if (!response.ok) {
+                      showMessage(data.err || 'Failed to save alert', 'error');
+                  } else {
+                      showMessage(data.msg || 'Alert saved successfully', 'success');
+                      exitEditMode();
+                      await loadAlerts();
+                  }
+              } catch (error) {
+                  console.error('Error creating alert:', error);
+                  showMessage('An error occurred while creating the alert. Please try again.', 'error');
+              } finally {
+                  createAlertButton.disabled = false;
+              }
+          });
+
+          function showMessage(text, type) {
+              const messageEl = document.getElementById('message');
+              messageEl.textContent = text;
+              messageEl.className = 'message ' + type;
+          }
+
+          function hideMessage() {
+              const messageEl = document.getElementById('message');
+              messageEl.className = 'message';
+          }
+
+          if (cancelEditButton) {
+              cancelEditButton.addEventListener('click', function() {
+                  exitEditMode();
+                  showMessage('Edit cancelled.', 'success');
+              });
+          }
+          window.addEventListener("load", () => {
+              const app = document.getElementById("app");
+              app.style.filter = "blur(0px)";
+              app.style.opacity = "1";
+              loadFilterOptions();
+              loadAlerts();
+          });
+      </script>
+  </body>
+  </html>`)
+})
+
+router.get('/alerts', async (req, res) => {
+    try {
+        const alerts = await prisma.alert.findMany({
+            include: {
+                sensor: { select: { name: true } }
+            }
+        });
+        return res.status(200).json({alerts})
+    } catch (error) {
+        logger.error('Error getting alerts:', error);
+        return res.status(500).json({ err: 'Internal server error' });
+    }
+})
+
+router.post('/alert', async (req, res) => {
+    try {
+        const name = req.body.name;
+        const originalName = req.body.originalName || name;
+        const sensorName = req.body.sensor;
+        const datatype = req.body.datatype;
+        const min = req.body.min;
+        const max = req.body.max;
+        const alertEmail = req.body.alertEmail;
+
+        if (!sensorName) {
+            return res.status(400).json({ err: 'Sensor is required for alert' });
+        }
+
+        const sensor = await prisma.sensor.findUnique({
+                where: {
+                    name: sensorName
+                }
+            });
+
+        if (!sensor) {
+            return res.status(404).json({err: "Sensor does not exist"})
+        }
+        
+        await prisma.alert.deleteMany({
+            where: { name: originalName }
+        });
+
+        await prisma.alert.create({
+            data: {
+                sensor: {connect: {id: sensor.id}},
+                email: alertEmail,
+                min: min,
+                max: max,
+                datatype,
+                name,
+            }
+        });
+
+        return res.status(200).json({ msg: 'Alert saved successfully' });
+    } catch (error) {
+        logger.error('Error creating alert:', error);
+        return res.status(500).json({ err: 'Internal server error' });
+    }
+})
 
 router.get('/active-id', async (req, res) => {
   return res.status(200).json({ id: req.userID})

@@ -717,7 +717,7 @@ router.post('/login', async (req, res) => {
 
             return res.status(200).json({ message: 'Login successful' });
         } else {
-            return res.status(401).json({ err: 'Incorrect password or name 2' });
+            return res.status(401).json({ err: 'Incorrect password or name' });
         }
     } catch (err) {
         logger.error('Error in login', {
