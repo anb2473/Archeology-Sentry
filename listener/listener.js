@@ -147,6 +147,11 @@ startSerialReader(async (data) => {
             console.log(`UV: ${uv}`)
             sendPostReq('user/sensor-data', { type: 'uv', value: uv });
             break;
+        case 'Rain':
+            const rain = parseInt(value)
+            console.log(`Rain: ${rain}`)
+            sendPostReq('user/sensor-data', { type: 'rain', value: rain });
+            break;
         case 'Info':
             console.log(`Info: ${value}`)
             break;

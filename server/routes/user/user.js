@@ -3109,7 +3109,8 @@ router.get('/analytics', (req, res) => {
                   "gyro_y": [-34.9, 34.9],
                   "gyro_z": [-34.9, 34.9],
                   "light": [0, 188000],
-                  "uv": [0, 15]
+                  "uv": [0, 15],
+                  "rain": [0, 1]
               }
 
               nominal_range = {
@@ -3126,7 +3127,8 @@ router.get('/analytics', (req, res) => {
                   "gyro_y": [-0.1, 0.1],
                   "gyro_z": [-0.1, 0.1],
                   "light": [0, 1000],
-                  "uv": [0, 2]
+                  "uv": [0, 2],
+                  "rain": [0, 0]
               }
 
               for (let user in analytics) {
