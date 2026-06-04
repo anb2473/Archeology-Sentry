@@ -27,6 +27,40 @@ const router = express.Router();
 const NAVBAR_RESPONSIVE_CSS = `
           html, body { overflow-x: hidden; }
           .navbar .logo { flex-shrink: 0; }
+          .nav-link {
+              position: relative;
+              transition: color 0.2s ease;
+          }
+          .nav-link::after {
+              content: '';
+              position: absolute;
+              left: 0;
+              right: 0;
+              bottom: -2px;
+              height: 2px;
+              background: transparent;
+              transition: background 180ms ease;
+          }
+          .nav-link:hover::after,
+          .nav-link:focus::after {
+              background: var(--accent);
+          }
+          .nav-link.navfocus {
+              color: #fff;
+          }
+          .nav-link.navfocus::after {
+              background: var(--accent);
+          }
+          .navbar .cta {
+              transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
+          }
+          .navbar .cta:hover,
+          .navbar .cta:focus {
+              background: #7be3db;
+              color: #111;
+              box-shadow: 0 4px 24px var(--accent);
+              transform: translateY(-2px) scale(1.04);
+          }
           .nav-toggle {
               display: none;
               margin-left: auto;
@@ -2829,7 +2863,7 @@ router.get('/analytics', (req, res) => {
           .page-wrapper {
               min-height: 100vh;
               display: flex;
-              -direction: column;
+              flex-direction: column;
               align-items: center;
               padding: 2rem 1rem;
               padding-top: 6rem;
@@ -2894,29 +2928,7 @@ ${NAVBAR_RESPONSIVE_CSS}
               cursor: pointer;
               font-weight: 600;
               text-decoration: none;
-              position: relative;
               outline: none;
-              transition: color 0.2s ease;
-          }
-
-          .nav-link::after {
-              content: '';
-              position: absolute;
-              left: 0;
-              right: 0;
-              bottom: -2px;
-              height: 2px;
-              background: transparent;
-              transition: background 180ms ease;
-          }
-
-          .nav-link:hover::after,
-          .nav-link:focus::after {
-              background: var(--accent);
-          }
-
-          .navfocus {
-            color: #fff
           }
 
           .navbar .cta {
@@ -2929,14 +2941,6 @@ ${NAVBAR_RESPONSIVE_CSS}
               padding: 12px 32px;
               cursor: pointer;
               box-shadow: 0 2px 12px rgba(78,205,196,0.08);
-              transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
-          }
-
-          .navbar .cta:hover, .navbar .cta:focus {
-              background: #7be3db;
-              color: #111;
-              box-shadow: 0 4px 24px var(--accent);
-              transform: translateY(-2px) scale(1.04);
           }
 
           .page-header {
@@ -3338,8 +3342,6 @@ ${NAVBAR_RESPONSIVE_CSS}
 
                   const canvas = document.createElement("canvas")
                   canvas.id = \`canvas-\${user}\`
-                  canvas.width = 200
-                  canvas.height = 100
                   wrapper_div.appendChild(canvas)
 
                   const cls_button = document.createElement("button")
@@ -3429,6 +3431,8 @@ ${NAVBAR_RESPONSIVE_CSS}
                           ]
                       },
                       options: {
+                          responsive: true,
+                          maintainAspectRatio: true,
                           plugins: {
                               title: {
                                   display: true,
@@ -3780,20 +3784,7 @@ ${NAVBAR_RESPONSIVE_CSS}
               cursor: pointer;
               font-weight: 600;
               text-decoration: none;
-              position: relative;
               outline: none;
-              transition: color 0.2s ease;
-          }
-
-          .nav-link::after {
-              content: '';
-              position: absolute;
-              left: 0;
-              right: 0;
-              bottom: -2px;
-              height: 2px;
-              background: transparent;
-              transition: background 180ms ease;
           }
 
           .navbar .cta {
@@ -3806,18 +3797,6 @@ ${NAVBAR_RESPONSIVE_CSS}
               padding: 12px 32px;
               cursor: pointer;
               box-shadow: 0 2px 12px rgba(78,205,196,0.08);
-              transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
-          }
-
-          .navbar .cta:hover, .navbar .cta:focus {
-              background: #7be3db;
-              color: #111;
-              box-shadow: 0 4px 24px var(--accent);
-              transform: translateY(-2px) scale(1.04);
-          }
-            
-          .navfocus {
-            color: #fff
           }
 
           .content-container {
@@ -4283,20 +4262,7 @@ ${NAVBAR_RESPONSIVE_CSS}
               cursor: pointer;
               font-weight: 600;
               text-decoration: none;
-              position: relative;
               outline: none;
-              transition: color 0.2s ease;
-          }
-
-          .nav-link::after {
-              content: '';
-              position: absolute;
-              left: 0;
-              right: 0;
-              bottom: -2px;
-              height: 2px;
-              background: transparent;
-              transition: background 180ms ease;
           }
 
           .navbar .cta {
@@ -4309,18 +4275,6 @@ ${NAVBAR_RESPONSIVE_CSS}
               padding: 12px 32px;
               cursor: pointer;
               box-shadow: 0 2px 12px rgba(78,205,196,0.08);
-              transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
-          }
-
-          .navbar .cta:hover, .navbar .cta:focus {
-              background: #7be3db;
-              color: #111;
-              box-shadow: 0 4px 24px var(--accent);
-              transform: translateY(-2px) scale(1.04);
-          }
-            
-          .navfocus {
-            color: #fff
           }
 
           .alerts-content {
@@ -4711,6 +4665,7 @@ ${NAVBAR_RESPONSIVE_CSS}
                       <a href="/user/sensors" class="nav-link">Sensors</a>
                       <a href="/user/map" class="nav-link">Map</a>
                       <a href="/user/alerts" class="nav-link navfocus">Alerts</a>
+                      <a href="/user/admin" class="nav-link">Admin</a>
                       <button class="cta" onclick="window.location.href='/auth/login'">Logout</button>
                   </div>
               </nav>

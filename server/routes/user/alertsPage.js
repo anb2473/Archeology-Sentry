@@ -108,19 +108,7 @@ ${NAVBAR_RESPONSIVE_CSS}
               cursor: pointer;
               font-weight: 600;
               text-decoration: none;
-              position: relative;
               outline: none;
-          }
-
-          .nav-link.navfocus { color: #fff; }
-          .nav-link.navfocus::after {
-              content: '';
-              position: absolute;
-              left: 0;
-              right: 0;
-              bottom: -2px;
-              height: 2px;
-              background: var(--accent);
           }
 
           .navbar .cta {
@@ -132,6 +120,7 @@ ${NAVBAR_RESPONSIVE_CSS}
               font-weight: 700;
               padding: 12px 32px;
               cursor: pointer;
+              box-shadow: 0 2px 12px rgba(78,205,196,0.08);
           }
 
           .alerts-content {
