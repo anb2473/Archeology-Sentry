@@ -40,11 +40,21 @@ model Alert {
   sensorId      Int
   sensor        Sensor     @relation(fields: [sensorId], references: [id])
   datatype      String?
-  min           Int?
-  max           Int?
+  condition     String     @default("outside")
+  min           Float?
+  max           Float?
   email         String?
   name          String @unique
   id            Int @id @default(autoincrement())
+  events        AlertEvent[]
+}
+
+model AlertEvent {
+  id          Int      @id @default(autoincrement())
+  alertId     Int
+  alert       Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  value       Float
+  triggeredAt DateTime @default(now())
 }
 
 model Boundary {

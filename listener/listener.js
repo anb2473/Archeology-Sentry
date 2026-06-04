@@ -10,7 +10,6 @@ import startSerialReader from './serial_reader.js';
 const SERVER_URL = process.env.SERVER_URL || 'http://127.0.0.1:3000';
 const name = process.env.NAME
 const passw = process.env.PASSW
-console.log(name)
 
 let authCookie = null;
 

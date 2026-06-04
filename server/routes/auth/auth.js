@@ -40,6 +40,7 @@ router.get('/signup', async (req, res) => {
             html, body {
                 height: 100%;
                 margin: 0;
+                overflow-x: hidden;
                 background: var(--bg);
                 color: var(--fg);
                 font-family: 'Inter', system-ui, Arial, sans-serif;
@@ -71,13 +72,15 @@ router.get('/signup', async (req, res) => {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 28px 5vw 0 5vw;
+                gap: 0.75rem;
+                padding: 28px max(1rem, 5vw) 0 max(1rem, 5vw);
                 background: none;
                 position: absolute;
                 top: 0; left: 0;
                 z-index: 10;
             }
             .navbar .logo {
+                flex-shrink: 0;
                 width: 54px; 
                 height: 54px; 
                 border-radius: 12px; 
@@ -166,6 +169,8 @@ router.get('/signup', async (req, res) => {
                 text-decoration: underline;
             }
             .navbar .cta {
+                flex-shrink: 0;
+                white-space: nowrap;
                 background: var(--accent);
                 color: #111;
                 border: none;
@@ -193,6 +198,13 @@ router.get('/signup', async (req, res) => {
             }
             /* Mobile responsiveness */
             @media (max-width: 600px) {
+                .navbar {
+                    padding-top: 16px;
+                }
+                .navbar .logo {
+                    width: 44px;
+                    height: 44px;
+                }
                 .navbar .cta {
                     font-size: 0.95rem;
                     padding: 10px 20px;
@@ -385,6 +397,7 @@ router.get('/login', async (req, res) => {
             html, body {
                 height: 100%;
                 margin: 0;
+                overflow-x: hidden;
                 background: var(--bg);
                 color: var(--fg);
                 font-family: 'Inter', system-ui, Arial, sans-serif;
@@ -416,13 +429,15 @@ router.get('/login', async (req, res) => {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 28px 5vw 0 5vw;
+                gap: 0.75rem;
+                padding: 28px max(1rem, 5vw) 0 max(1rem, 5vw);
                 background: none;
                 position: absolute;
                 top: 0; left: 0;
                 z-index: 10;
             }
             .navbar .logo {
+                flex-shrink: 0;
                 width: 54px; 
                 height: 54px; 
                 border-radius: 12px; 
@@ -519,6 +534,8 @@ router.get('/login', async (req, res) => {
                 display: none;
             }
             .navbar .cta {
+                flex-shrink: 0;
+                white-space: nowrap;
                 background: var(--accent);
                 color: #111;
                 border: none;
@@ -538,6 +555,13 @@ router.get('/login', async (req, res) => {
             }
             /* Mobile responsiveness */
             @media (max-width: 600px) {
+                .navbar {
+                    padding-top: 16px;
+                }
+                .navbar .logo {
+                    width: 44px;
+                    height: 44px;
+                }
                 .navbar .cta {
                     font-size: 0.95rem;
                     padding: 10px 20px;

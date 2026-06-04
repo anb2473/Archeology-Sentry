@@ -1,7 +1,13 @@
 import express from 'express';
 import { prisma } from '../../prismaClient.js';
 import logger from '../../logger.js';
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs';
+import {
+  DEFAULT_DATA_TYPES,
+  processAlertsForReading,
+  validateAlertPayload,
+} from '../../lib/alerts.js';
+import { getAlertsPageHtml } from './alertsPage.js';
 
 const SALT_ROUNDS = 10;
 const minPasswLen = 6;
@@ -17,6 +23,151 @@ function parseBasicAuth(req) {
 }
 
 const router = express.Router();
+
+const NAVBAR_RESPONSIVE_CSS = `
+          html, body { overflow-x: hidden; }
+          .navbar .logo { flex-shrink: 0; }
+          .nav-toggle {
+              display: none;
+              margin-left: auto;
+              width: 44px;
+              height: 44px;
+              padding: 0;
+              border: none;
+              border-radius: 8px;
+              background: transparent;
+              cursor: pointer;
+              flex-shrink: 0;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+          }
+          .nav-toggle-bar {
+              display: block;
+              width: 22px;
+              height: 2px;
+              background: var(--accent);
+              border-radius: 1px;
+              transition: transform 0.2s ease, opacity 0.2s ease;
+          }
+          .navbar.nav-open .nav-toggle-bar:nth-child(1) {
+              transform: translateY(7px) rotate(45deg);
+          }
+          .navbar.nav-open .nav-toggle-bar:nth-child(2) {
+              opacity: 0;
+          }
+          .navbar.nav-open .nav-toggle-bar:nth-child(3) {
+              transform: translateY(-7px) rotate(-45deg);
+          }
+          @media (max-width: 900px) {
+              .navbar {
+                  flex-wrap: nowrap;
+                  align-items: center;
+                  justify-content: space-between;
+                  padding: 20px 5vw;
+                  background: none;
+              }
+              .nav-toggle {
+                  display: flex;
+              }
+              .navbar .logo {
+                  width: 44px;
+                  height: 44px;
+              }
+              .nav-actions {
+                  display: flex;
+                  position: absolute;
+                  top: calc(100% + 10px);
+                  right: 5vw;
+                  left: auto;
+                  width: auto;
+                  min-width: 210px;
+                  max-width: min(280px, calc(100vw - 2.5rem));
+                  margin-left: 0;
+                  flex-direction: column;
+                  align-items: stretch;
+                  gap: 0.35rem;
+                  padding: 0.65rem;
+                  background: rgba(17, 17, 17, 0.92);
+                  backdrop-filter: blur(14px);
+                  -webkit-backdrop-filter: blur(14px);
+                  border: 1px solid rgba(78, 205, 196, 0.3);
+                  border-radius: 12px;
+                  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+                  visibility: hidden;
+                  opacity: 0;
+                  transform: translateY(-6px) scale(0.97);
+                  transform-origin: top right;
+                  pointer-events: none;
+                  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+                  z-index: 101;
+              }
+              .navbar.nav-open .nav-actions {
+                  visibility: visible;
+                  opacity: 1;
+                  transform: translateY(0) scale(1);
+                  pointer-events: auto;
+              }
+              .nav-actions .nav-link {
+                  text-align: left;
+                  padding: 10px 14px;
+                  border-radius: 8px;
+                  transition: background 0.2s ease, color 0.2s ease;
+              }
+              .nav-actions .nav-link:hover,
+              .nav-actions .nav-link:focus {
+                  background: rgba(78, 205, 196, 0.12);
+                  color: var(--fg);
+              }
+              .nav-actions .nav-link.navfocus {
+                  background: rgba(78, 205, 196, 0.1);
+                  color: var(--fg);
+              }
+              .nav-actions .cta {
+                  width: 100%;
+                  margin-top: 0.35rem;
+                  text-align: center;
+              }
+              .navbar .cta {
+                  font-size: 0.95rem;
+                  padding: 10px 20px;
+              }
+          }`;
+
+const NAVBAR_TOGGLE_BTN = `<button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-actions">
+                <span class="nav-toggle-bar"></span>
+                <span class="nav-toggle-bar"></span>
+                <span class="nav-toggle-bar"></span>
+              </button>`;
+
+const NAVBAR_TOGGLE_SCRIPT = `<script>
+      (function () {
+        document.querySelectorAll('.navbar').forEach(function (nav) {
+          var toggle = nav.querySelector('.nav-toggle');
+          var actions = nav.querySelector('.nav-actions');
+          if (!toggle || !actions) return;
+          function setOpen(open) {
+            nav.classList.toggle('nav-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          }
+          toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setOpen(!nav.classList.contains('nav-open'));
+          });
+          actions.querySelectorAll('a, button').forEach(function (el) {
+            el.addEventListener('click', function () { setOpen(false); });
+          });
+          document.addEventListener('click', function (e) {
+            if (!nav.contains(e.target)) setOpen(false);
+          });
+          window.addEventListener('resize', function () {
+            if (window.innerWidth > 900) setOpen(false);
+          });
+        });
+      })();
+      </script>`;
 
 router.get('/map', (req, res) => {
   res.send(`<!DOCTYPE html>
@@ -120,7 +271,10 @@ router.get('/map', (req, res) => {
               display: flex;
               gap: 1rem;
               align-items: center;
+              flex-shrink: 1;
+              min-width: 0;
           }
+${NAVBAR_RESPONSIVE_CSS}
 
           .nav-link {
               color: #9f9f9f;
@@ -584,7 +738,8 @@ router.get('/map', (req, res) => {
                 <a href="/" class="logo">
                     <img src="/icon/logo.png" alt="Archeology Sentry" />
                 </a>
-                <div class="nav-actions">
+                ${NAVBAR_TOGGLE_BTN}
+                <div class="nav-actions" id="nav-actions">
                     <a href="/user/sensors" class="nav-link">Sensors</a>
                     <a href="/user/map" class="nav-link navfocus">Map</a>
                     <a href="/user/alerts" class="nav-link">Alerts</a>
@@ -1693,6 +1848,7 @@ router.get('/map', (req, res) => {
               app.style.opacity = "1";
             });
         </script>
+    ${NAVBAR_TOGGLE_SCRIPT}
     </body>
     </html>`)
 })
@@ -1794,7 +1950,10 @@ router.get('/sensors', (req, res) => {
               display: flex;
               gap: 1rem;
               align-items: center;
+              flex-shrink: 1;
+              min-width: 0;
           }
+${NAVBAR_RESPONSIVE_CSS}
 
           .nav-link {
               color: #b8b8b8;
@@ -2325,7 +2484,8 @@ router.get('/sensors', (req, res) => {
                   <a href="/" class="logo">
                       <img src="/icon/logo.png" alt="Archeology Sentry" />
                   </a>
-                  <div class="nav-actions">
+                  ${NAVBAR_TOGGLE_BTN}
+                  <div class="nav-actions" id="nav-actions">
                         <a href="/user/sensors" class="nav-link navfocus">Sensors</a>
                         <a href="/user/map" class="nav-link">Map</a>
                         <a href="/user/alerts" class="nav-link">Alerts</a>
@@ -2610,6 +2770,7 @@ router.get('/sensors', (req, res) => {
               app.style.opacity = "1";
           });
       </script>
+  ${NAVBAR_TOGGLE_SCRIPT}
   </body>
   </html>`);
 });
@@ -2668,7 +2829,7 @@ router.get('/analytics', (req, res) => {
           .page-wrapper {
               min-height: 100vh;
               display: flex;
-              flex-direction: column;
+              -direction: column;
               align-items: center;
               padding: 2rem 1rem;
               padding-top: 6rem;
@@ -2719,7 +2880,10 @@ router.get('/analytics', (req, res) => {
               display: flex;
               gap: 1rem;
               align-items: center;
+              flex-shrink: 1;
+              min-width: 0;
           }
+${NAVBAR_RESPONSIVE_CSS}
 
           .nav-link {
               color: #b8b8b8;
@@ -3014,7 +3178,8 @@ router.get('/analytics', (req, res) => {
                   <a href="/" class="logo">
                       <img src="/icon/logo.png" alt="Archeology Sentry" />
                   </a>
-                  <div class="nav-actions">
+                  ${NAVBAR_TOGGLE_BTN}
+                  <div class="nav-actions" id="nav-actions">
                       <a href="/user/sensors" class="nav-link">Sensors</a>
                       <a href="/user/map" class="nav-link">Map</a>
                       <a href="/user/alerts" class="nav-link">Alerts</a>
@@ -3464,6 +3629,7 @@ router.get('/analytics', (req, res) => {
               });
           }
       </script>
+  ${NAVBAR_TOGGLE_SCRIPT}
   </body>
   </html>`);
 });
@@ -3600,7 +3766,10 @@ router.get('/admin', (req, res) => {
               display: flex;
               gap: 1rem;
               align-items: center;
+              flex-shrink: 1;
+              min-width: 0;
           }
+${NAVBAR_RESPONSIVE_CSS}
 
           .nav-link {
               color: #b8b8b8;
@@ -3850,7 +4019,8 @@ router.get('/admin', (req, res) => {
                   <a href="/" class="logo">
                       <img src="/icon/logo.png" alt="Archeology Sentry" />
                   </a>
-                  <div class="nav-actions">
+                  ${NAVBAR_TOGGLE_BTN}
+                  <div class="nav-actions" id="nav-actions">
                       <a href="/user/sensors" class="nav-link">Sensors</a>
                       <a href="/user/map" class="nav-link">Map</a>
                       <a href="/user/alerts" class="nav-link">Alerts</a>
@@ -3987,6 +4157,7 @@ router.get('/admin', (req, res) => {
               app.style.opacity = "1";
           });
       </script>
+  ${NAVBAR_TOGGLE_SCRIPT}
   </body>
   </html>`);
 });
@@ -4098,7 +4269,10 @@ router.get('/alerts', async (req, res, next) => {
               display: flex;
               gap: 1rem;
               align-items: center;
+              flex-shrink: 1;
+              min-width: 0;
           }
+${NAVBAR_RESPONSIVE_CSS}
 
           .nav-link {
               color: #b8b8b8;
@@ -4532,7 +4706,8 @@ router.get('/alerts', async (req, res, next) => {
                   <a href="/" class="logo">
                       <img src="/icon/logo.png" alt="Archeology Sentry" />
                   </a>
-                  <div class="nav-actions">
+                  ${NAVBAR_TOGGLE_BTN}
+                  <div class="nav-actions" id="nav-actions">
                       <a href="/user/sensors" class="nav-link">Sensors</a>
                       <a href="/user/map" class="nav-link">Map</a>
                       <a href="/user/alerts" class="nav-link navfocus">Alerts</a>
@@ -4943,6 +5118,7 @@ router.get('/alerts', async (req, res, next) => {
               loadAlerts();
           });
       </script>
+  ${NAVBAR_TOGGLE_SCRIPT}
   </body>
   </html>`)
 })
@@ -4963,41 +5139,43 @@ router.get('/alerts', async (req, res) => {
 
 router.post('/alert', async (req, res) => {
     try {
-        const name = req.body.name;
-        const originalName = req.body.originalName || name;
-        const sensorName = req.body.sensor;
-        const datatype = req.body.datatype;
-        const min = req.body.min;
-        const max = req.body.max;
-        const alertEmail = req.body.alertEmail;
-
-        if (!sensorName) {
-            return res.status(400).json({ err: 'Sensor is required for alert' });
+        const validation = validateAlertPayload(req.body);
+        if (!validation.ok) {
+            return res.status(400).json({ err: validation.err });
         }
+
+        const { name, sensorName, datatype, alertEmail, condition, min, max } = validation.data;
+        const originalName = (req.body.originalName || name).trim();
 
         const sensor = await prisma.sensor.findUnique({
-                where: {
-                    name: sensorName
-                }
-            });
+            where: { name: sensorName },
+        });
 
         if (!sensor) {
-            return res.status(404).json({err: "Sensor does not exist"})
+            return res.status(404).json({ err: 'Sensor does not exist' });
         }
-        
+
+        if (originalName !== name) {
+            const conflict = await prisma.alert.findUnique({ where: { name } });
+            if (conflict) {
+                return res.status(409).json({ err: 'An alert with that name already exists' });
+            }
+        }
+
         await prisma.alert.deleteMany({
-            where: { name: originalName }
+            where: { name: originalName },
         });
 
         await prisma.alert.create({
             data: {
-                sensor: {connect: {id: sensor.id}},
+                sensor: { connect: { id: sensor.id } },
                 email: alertEmail,
-                min: min,
-                max: max,
+                condition,
+                min,
+                max,
                 datatype,
                 name,
-            }
+            },
         });
 
         return res.status(200).json({ msg: 'Alert saved successfully' });
@@ -5005,7 +5183,51 @@ router.post('/alert', async (req, res) => {
         logger.error('Error creating alert:', error);
         return res.status(500).json({ err: 'Internal server error' });
     }
-})
+});
+
+router.delete('/alert', async (req, res) => {
+    try {
+        const name = (req.body.name || '').trim();
+        if (!name) {
+            return res.status(400).json({ err: 'Alert name is required' });
+        }
+
+        const deleted = await prisma.alert.deleteMany({ where: { name } });
+        if (!deleted.count) {
+            return res.status(404).json({ err: 'Alert not found' });
+        }
+
+        return res.status(200).json({ msg: 'Alert deleted' });
+    } catch (error) {
+        logger.error('Error deleting alert:', error);
+        return res.status(500).json({ err: 'Internal server error' });
+    }
+});
+
+router.get('/alert-events', async (req, res) => {
+    try {
+        const since = req.query.since ? new Date(req.query.since) : null;
+        const where = since && !Number.isNaN(since.getTime())
+            ? { triggeredAt: { gt: since } }
+            : {};
+
+        const events = await prisma.alertEvent.findMany({
+            where,
+            include: {
+                alert: {
+                    include: { sensor: { select: { name: true } } },
+                },
+            },
+            orderBy: { triggeredAt: 'desc' },
+            take: 50,
+        });
+
+        return res.status(200).json({ events });
+    } catch (error) {
+        logger.error('Error fetching alert events:', error);
+        return res.status(500).json({ err: 'Internal server error' });
+    }
+});
 
 router.get('/active-id', async (req, res) => {
   return res.status(200).json({ id: req.userID})
@@ -5064,7 +5286,16 @@ router.post('/sensor-data', async (req, res) => {
         }
       });
 
-        return res.status(200).json({ msg: 'Sensor data saved successfully' });
+      const triggered = await processAlertsForReading(prisma, {
+        sensorId,
+        type,
+        value,
+      });
+
+        return res.status(200).json({
+          msg: 'Sensor data saved successfully',
+          triggered: triggered.length,
+        });
     } catch (error) {
         logger.error('Error saving sensor data:', error);
         return res.status(500).json({ err: 'Internal server error' });
@@ -5082,25 +5313,23 @@ router.get('/user-risk', async (req, res) => {
 
 router.get('/sensor-data/filters', async (req, res) => {
   try {
-    // Get all data points to extract unique types and users
-    const dataPoints = await prisma.dataPoint.findMany({
-      select: {
-        type: true,
-        sensor: {
-          select: {
-            name: true
-          }
-        }
-      }
+    const sensors = await prisma.sensor.findMany({
+      select: { name: true },
+      orderBy: { name: 'asc' },
     });
 
-    // Extract unique types and names
-    const types = [...new Set(dataPoints.map(dp => dp.type))].filter(Boolean).sort();
-    const sensorNames = [...new Set(dataPoints.map(dp => dp.sensor.name))].filter(Boolean).sort();
+    const dataPoints = await prisma.dataPoint.findMany({
+      select: { type: true },
+      distinct: ['type'],
+    });
+
+    const typesFromData = dataPoints.map((dp) => dp.type).filter(Boolean);
+    const types = [...new Set([...DEFAULT_DATA_TYPES, ...typesFromData])].sort();
+    const sensorNames = sensors.map((s) => s.name);
 
     return res.status(200).json({
       types,
-      users: sensorNames
+      users: sensorNames,
     });
   } catch (error) {
     logger.error('Error fetching filter options:', error);

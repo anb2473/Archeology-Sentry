@@ -1,4 +1,4 @@
-#include <Arduino.h>
+
 #include <Wire.h>
 #include "DHT.h"
 #include <Adafruit_BMP280.h>

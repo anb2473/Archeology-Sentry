@@ -39,6 +39,7 @@ app.get('/', (req, res) => {
             html, body {
                 height: 100%;
                 margin: 0;
+                overflow-x: hidden;
                 background: var(--bg);
                 color: var(--fg);
                 font-family: 'Inter', system-ui, Arial, sans-serif;
@@ -52,13 +53,15 @@ app.get('/', (req, res) => {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 28px 5vw 0 5vw;
+                gap: 0.75rem;
+                padding: 28px max(1rem, 5vw) 0 max(1rem, 5vw);
                 background: none;
                 position: absolute;
                 top: 0; left: 0;
                 z-index: 10;
             }
             .navbar .logo {
+                flex-shrink: 0;
                 width: 54px; 
                 height: 54px; 
                 border-radius: 12px; 
@@ -71,6 +74,7 @@ app.get('/', (req, res) => {
                 width: 100%; height: 100%; object-fit: contain; display: block;
             }
             .navbar .cta {
+                flex-shrink: 0;
                 background: var(--accent);
                 color: #111;
                 border: none;
@@ -79,6 +83,7 @@ app.get('/', (req, res) => {
                 font-weight: 700;
                 padding: 12px 32px;
                 cursor: pointer;
+                white-space: nowrap;
                 box-shadow: 0 2px 12px rgba(78,205,196,0.08);
                 transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
             }
